@@ -1,6 +1,7 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import { Button, Modal, Form, FormGroup } from 'react-bootstrap';
 import WebCamVerificationScreen from './WebCamVerificationScreen';
+import AWS_Rekognition_API_Repository from '../Api/Aws_rekognition_api'
 
 const CreateAccountModal = (props) => {
 
@@ -10,9 +11,33 @@ const CreateAccountModal = (props) => {
     const [email, setEmail] = useState('')
     const [userImage, setUserImage] = useState(null)
 
-    const handleCreateAccount = () => {
-        
+    const [isLoading, setIsLoading] = useState(false)
+
+    const rekognition_api = new AWS_Rekognition_API_Repository();
+
+
+
+    const handleCreateAccount = async (e) => {
+        // e.preventDefault();
+        // setIsLoading(true);
+
+        // const res = await rekognition_api.searchUser(userImage);
+
+        // if(res) setIsLoading(false);
+
+        // if (!res.success) {
+        //     setErrors(res);
+        //   } else {
+        //     setUserContext(userRepository.currentUser());
+        //     history.push('/');
+
+        //     session
+        //   }
     }
+
+    useEffect(() => {
+        console.log(userImage)
+    }, [userImage])
 
 
   return (

@@ -20,7 +20,7 @@ app.use(cors({
   origin: '*'
 }));
 
-routes(app);
+routes(app, logger);
 
 app.listen(config.port, config.host, (e) => {
     if (e) {
