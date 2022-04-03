@@ -8,6 +8,12 @@ const CreateAccountModal = (props) => {
     const [lastName, setLastName] = useState('')
     const [phoneNumber, setPhoneNumber] = useState('')
     const [email, setEmail] = useState('')
+    const [userImage, setUserImage] = useState(null)
+
+    const handleCreateAccount = () => {
+        
+    }
+
 
   return (
     <div>
@@ -26,7 +32,7 @@ const CreateAccountModal = (props) => {
             </Modal.Header>
 
             <Modal.Body>
-                <WebCamVerificationScreen />
+                <WebCamVerificationScreen setUserImage={setUserImage} userImage={userImage}/>
 
                     <Form.Group className="mb-3" controlId="firstName">
                         <Form.Label>First Name</Form.Label>
@@ -52,7 +58,7 @@ const CreateAccountModal = (props) => {
             <Modal.Footer>
                 <div >
                     <Button style={{margin: '5px'}} onClick={props.handleClose}>Cancel</Button>
-                    <Button style={{margin: '5px'}} >Submit</Button>
+                    <Button style={{margin: '5px'}} onClick={handleCreateAccount} >Submit</Button>
                 </div>
             </Modal.Footer>
         </Modal>

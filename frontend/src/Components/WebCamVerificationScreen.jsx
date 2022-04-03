@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from "react";
-import { Button, Modal } from 'react-bootstrap';
+import React, { useState, useEffect } from "react";
+import { Button} from 'react-bootstrap';
 import Webcam from "react-webcam";
 
-const WebCamVerificationScreen = () => {
-
+const WebCamVerificationScreen = (props) => {
+    
       const videoConstraints = {
         width: 780,
         height: 420,
@@ -13,22 +13,32 @@ const WebCamVerificationScreen = () => {
       return (
           <>
             <div className="WebCam-verification-screen">
+                {props.userImage? 
+
+                    <div>
+                        <img src={props.userImage}/>
+                        <br />
+                        <Button style={{backgroundColor: 'green'}} onClick={() => props.setUserImage(null)}>Retake Picture</Button>
+                    </div>
+                :
+
                 <Webcam
                     audio={false}
                     screenshotFormat="image/jpeg"
                     videoConstraints={videoConstraints}
-                >
-                    {({ getScreenshot }) => (
-                    <button
-                        onClick={() => {
-                        const imageSrc = getScreenshot()
-                        console.log("Image found!: ", imageSrc)
-                        }}
                     >
-                        Capture photo
-                    </button>
+                        {({ getScreenshot }) => (
+                            <Button
+                                onClick={() => {
+                                let imageFile = getScreenshot()
+                                props.setUserImage(imageFile)
+                                }}
+                            >
+                                Capture photo
+                            </Button>
                     )}
-                </Webcam>
+                    </Webcam> 
+            }
             </div>
           </>
       );
