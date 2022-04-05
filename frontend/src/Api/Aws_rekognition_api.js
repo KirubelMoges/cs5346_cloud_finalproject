@@ -4,6 +4,13 @@ export default class AWS_Rekognition_API_Repository {
 
     url = 'http://localhost:8000'
 
+    config = {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      },
+    };
+
     async searchUser(userImageFile) {
       const errors = {};
         const { data, status } = await axios.get(this.url + '/searchuser', {
@@ -13,27 +20,23 @@ export default class AWS_Rekognition_API_Repository {
           if (status >= 201) {
             console.log(data);
             errors.request = 'Bad Request';
-          } else if (data.status === 1) {
-            errors.reason = 'ERROR_Rekog1';
-          } else errors.success = true;
-      
+          } 
+    
           return [data.data, errors];
     }
 
     async detectFaces(userImage) {
-      console.log("Inside frontend detect faces...")
+      console.log("Inside frontend detect faces...", userImage)
+
       const errors = {};
-        const { data, status } = await axios.get(this.url + '/detectfaces', {
-            params: {userImage}
-          });
+
+       const { data, status } = await axios.post(this.url + '/detectfaces', JSON.stringify({userImage}), config);
 
           if (status >= 201) {
             console.log(data);
             errors.request = 'Bad Request';
-          } else if (data.status === 1) {
-            errors.reason = 'ERROR_Rekog2';
-          } else errors.success = true;
-      
+          } 
+    
           return [data.data, errors];
     }
 
@@ -46,10 +49,8 @@ export default class AWS_Rekognition_API_Repository {
           if (status >= 201) {
             console.log(data);
             errors.request = 'Bad Request';
-          } else if (data.status === 1) {
-            errors.reason = 'ERROR_Rekog3';
-          } else errors.success = true;
-      
+          } 
+    
           return [data.data, errors];
     }
 
@@ -62,10 +63,8 @@ export default class AWS_Rekognition_API_Repository {
           if (status >= 201) {
             console.log(data);
             errors.request = 'Bad Request';
-          } else if (data.status === 1) {
-            errors.reason = 'ERROR_Rekog4';
-          } else errors.success = true;
-      
+          } 
+    
           return [data.data, errors];
     }
 };

@@ -24,8 +24,10 @@ const CreateAccountModal = (props) => {
     };
 
     const onCaptureUserImage = async () => {
-       const res = rekognition_api.detectFaces(userImage);
+        let base64_image_string = String(userImage).replace('data:image/jpeg;base64,', '')
+       const res = await rekognition_api.detectFaces(base64_image_string);
 
+       console.log("CreateModal Rek Response: ", res)
     }
 
     const onCancelButton = () => {

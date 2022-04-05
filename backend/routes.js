@@ -2,13 +2,19 @@
 const { json } = require('body-parser');
 var AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
-require('dotenv').config({ path: "../.env" });
+const formidable = require('formidable');
+const  multiparty = require('multiparty');
+const http = require('http');
+const util = require('util');
+
+require('dotenv').config();
+
 
 module.exports = function routes(app, logger) {
 
     var rekognition_collection_id = 'mustang-go-image-collection'
 
-    AWS.config.update({region: 'us-east-1', accessKeyId: process.env.aws_access_key_id, secretAccessKey: process.env.aws_secret_access_key});
+    AWS.config.update({accessKeyId: process.env.aws_access_key_id, secretAccessKey: process.env.aws_secret_access_key, region: 'us-east-1'});
 
     var rekognition = new AWS.Rekognition();
 
@@ -140,15 +146,15 @@ module.exports = function routes(app, logger) {
    * @param {userImage} userImage- base64 encoded image of user
    * @returns {0, 1} - 0: Wrong format or more than 1 facial feature detected. 1: only 1 facial feature detected
    */
-       app.get('/detectfaces', async (req, res) => {
-
-         console.log("Request: ", req)
+       app.post('/detectfaces', async (req, res, next) => {
          
          let userImage = req.body['userImage'];
 
-         console.log("Routes detect Faces called...", userImage)
+         console.log("Before Buffer", userImage)
 
          const imageBuffer = Buffer.from(decodeURIComponent(userImage), 'base64');
+
+         console.log("After Buffer: ", imageBuffer)
 
          var detect_faces_params = {
             "Image": { 
@@ -157,12 +163,16 @@ module.exports = function routes(app, logger) {
          }
             rekognition.detectFaces(detect_faces_params, function(err, data) {
                if (err) {
+                  console.log("Inside err rekog: ", err)
                   res.status(400).json({
-                     status: 0
+                     status: 0, 
+                     data
                      });
                }
                else {
+                  console.log("Inside success rekog")
                   console.log(data);
+                  
                   res.status(200).json({
                      status: 1,
                      data

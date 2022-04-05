@@ -16,6 +16,9 @@ const logger = log({ console: true, file: false, label: config.name });
 
 // specify middleware to use
 app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
+app.use(express.urlencoded());  // To parse URL-encoded bodies
+app.use(express.json()); //To parse JSON bodies
 app.use(cors({
   origin: '*'
 }));
