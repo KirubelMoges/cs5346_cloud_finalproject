@@ -140,8 +140,13 @@ module.exports = function routes(app, logger) {
    * @param {userImage} userImage- base64 encoded image of user
    * @returns {0, 1} - 0: Wrong format or more than 1 facial feature detected. 1: only 1 facial feature detected
    */
-       app.get('/detectfaces', (req, res) => {
+       app.get('/detectfaces', async (req, res) => {
+
+         console.log("Request: ", req)
+         
          let userImage = req.body['userImage'];
+
+         console.log("Routes detect Faces called...", userImage)
 
          const imageBuffer = Buffer.from(decodeURIComponent(userImage), 'base64');
 

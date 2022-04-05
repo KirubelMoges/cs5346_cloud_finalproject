@@ -2,11 +2,11 @@ import axios from 'axios';
 
 export default class AWS_Rekognition_API_Repository {
 
-    URL = 'http://localhost:8000'
+    url = 'http://localhost:8000'
 
     async searchUser(userImageFile) {
       const errors = {};
-        const { data, status } = await axios.get(URL + '/searchuser', {
+        const { data, status } = await axios.get(this.url + '/searchuser', {
             params: { userImageFile }
           });
 
@@ -14,23 +14,24 @@ export default class AWS_Rekognition_API_Repository {
             console.log(data);
             errors.request = 'Bad Request';
           } else if (data.status === 1) {
-            errors.reason = 'Still clocked in, clock out before clocking in.';
+            errors.reason = 'ERROR_Rekog1';
           } else errors.success = true;
       
           return [data.data, errors];
     }
 
-    async detectFaces(userImageFile) {
+    async detectFaces(userImage) {
+      console.log("Inside frontend detect faces...")
       const errors = {};
-        const { data, status } = await axios.get(URL + '/detectfaces', {
-            params: { userImageFile }
+        const { data, status } = await axios.get(this.url + '/detectfaces', {
+            params: {userImage}
           });
 
           if (status >= 201) {
             console.log(data);
             errors.request = 'Bad Request';
           } else if (data.status === 1) {
-            errors.reason = 'Still clocked in, clock out before clocking in.';
+            errors.reason = 'ERROR_Rekog2';
           } else errors.success = true;
       
           return [data.data, errors];
@@ -38,7 +39,7 @@ export default class AWS_Rekognition_API_Repository {
 
     async addFace(userImageFile) {
       const errors = {};
-        const { data, status } = await axios.get(URL + '/addface', {
+        const { data, status } = await axios.get(this.url + '/addface', {
             params: { userImageFile }
           });
 
@@ -46,7 +47,7 @@ export default class AWS_Rekognition_API_Repository {
             console.log(data);
             errors.request = 'Bad Request';
           } else if (data.status === 1) {
-            errors.reason = 'Still clocked in, clock out before clocking in.';
+            errors.reason = 'ERROR_Rekog3';
           } else errors.success = true;
       
           return [data.data, errors];
@@ -54,7 +55,7 @@ export default class AWS_Rekognition_API_Repository {
 
     async deleteUser(userImageFile) {
       const errors = {};
-        const { data, status } = await axios.get(URL + '/deleteuser', {
+        const { data, status } = await axios.get(this.url + '/deleteuser', {
             params: { userImageFile }
           });
 
@@ -62,7 +63,7 @@ export default class AWS_Rekognition_API_Repository {
             console.log(data);
             errors.request = 'Bad Request';
           } else if (data.status === 1) {
-            errors.reason = 'Still clocked in, clock out before clocking in.';
+            errors.reason = 'ERROR_Rekog4';
           } else errors.success = true;
       
           return [data.data, errors];

@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react'
-import { Button, Modal, Form, FormGroup } from 'react-bootstrap';
+import { Button, Modal, Form, FormGroup, Spinner } from 'react-bootstrap';
 import WebCamVerificationScreen from './WebCamVerificationScreen';
 import AWS_Rekognition_API_Repository from '../Api/Aws_rekognition_api'
 
@@ -10,16 +10,34 @@ const CreateAccountModal = (props) => {
     const [phoneNumber, setPhoneNumber] = useState('')
     const [email, setEmail] = useState('')
     const [userImage, setUserImage] = useState(null)
-
     const [isLoading, setIsLoading] = useState(false)
+    const [disableSubmitButton, setDisableSubmitButton] = useState(false)
 
     const rekognition_api = new AWS_Rekognition_API_Repository();
+
+    const clearUserData = () => {
+        setFirstName('')
+        setLastName('')
+        setPhoneNumber('')
+        setEmail('')
+        setUserImage(null)
+    };
+
+    const onCaptureUserImage = async () => {
+       const res = rekognition_api.detectFaces(userImage);
+
+    }
+
+    const onCancelButton = () => {
+        props.handleClose();
+        clearUserData()
+    }
 
 
 
     const handleCreateAccount = async (e) => {
-        // e.preventDefault();
-        // setIsLoading(true);
+        e.preventDefault();
+        setIsLoading(true);
 
         // const res = await rekognition_api.searchUser(userImage);
 
@@ -36,8 +54,21 @@ const CreateAccountModal = (props) => {
     }
 
     useEffect(() => {
-        console.log(userImage)
+        // console.log(userImage)
+
+        if(userImage) {
+            onCaptureUserImage()
+        }
+
     }, [userImage])
+
+    useEffect(() => {
+        if(firstName.length < 1 || lastName.length < 1 || phoneNumber.length < 1 || email.length < 1 || userImage == null )
+            setDisableSubmitButton(true)
+        else
+            setDisableSubmitButton(false)
+
+    }, [firstName, lastName, phoneNumber, email])
 
 
   return (
@@ -54,6 +85,7 @@ const CreateAccountModal = (props) => {
         >
             <Modal.Header>
                 <Modal.Title>Create Account</Modal.Title>
+                {isLoading? <Spinner animation="grow" /> : null}
             </Modal.Header>
 
             <Modal.Body>
@@ -76,14 +108,22 @@ const CreateAccountModal = (props) => {
 
                     <Form.Group className="mb-3" controlId="phoneNumber">
                         <Form.Label>Phone Number</Form.Label>
-                        <Form.Control type="phoneNumber" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)}/>
+                        <Form.Control type="phoneNumber" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} 
+                        
+                        onKeyPress={(event) => {
+                            if (!/[0-9]/.test(event.key)) {
+                              event.preventDefault();
+                            }
+                          }}
+                        
+                        />
                     </Form.Group>
             </Modal.Body>
 
             <Modal.Footer>
                 <div >
-                    <Button style={{margin: '5px'}} onClick={props.handleClose}>Cancel</Button>
-                    <Button style={{margin: '5px'}} onClick={handleCreateAccount} >Submit</Button>
+                    <Button style={{margin: '5px'}} onClick={onCancelButton}>Cancel</Button>
+                    <Button style={{margin: '5px'}} onClick={handleCreateAccount} disabled={disableSubmitButton}>Submit</Button>
                 </div>
             </Modal.Footer>
         </Modal>
