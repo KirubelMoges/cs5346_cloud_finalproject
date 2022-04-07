@@ -20,6 +20,7 @@ const CreateAccountModal = (props) => {
     const [isCodeConfirmed, setIsCodeConfirmed] = useState(false)
 
     const [showTwilioModal, setShowTwilioModal] = useState(false)
+    const [someWentWrong, setSomethingWentWrong] = useState(false)
 
     const handleCloseTwilioModal = () => setShowTwilioModal(false);
     const handleShowTwilioModal = () => setShowTwilioModal(true);
@@ -36,6 +37,8 @@ const CreateAccountModal = (props) => {
         setDisableSubmitButton(true)
         setIsUserAlreadyExists(false)
         setIsCodeConfirmed(false)
+        setShowTwilioModal(false)
+        setSomethingWentWrong(false)
     };
 
     const onCaptureUserImage = async () => {
@@ -65,22 +68,6 @@ const CreateAccountModal = (props) => {
         clearUserData()
     }
 
-    const verifyUserPhoneNumber = async () => {
-        handleShowTwilioModal();
-
-        // let limit = 10000000000
-        // for(let i = 0; i < limit; i++) {
-        //     if(isCodeConfirmed || !showTwilioModal) break
-        //     else {
-        //         if(limit - 1000 < i) i = 0;
-        //     }
-        // }
-
-        return
-    }
-
-
-
     const handleCreateAccount = async (e) => {
         e.preventDefault();
         setIsLoading(true);
@@ -99,46 +86,11 @@ const CreateAccountModal = (props) => {
             return
         } 
         else if (res.status == 1 && res.data.FaceMatches.length == 0) {
-            console.log("CreateAccount Route 2")
-            console.log("About to Verify phone number")
-            await verifyUserPhoneNumber()
-
-            console.log("About to call add face...")
-            const res_addFace = await rekognition_api.addFace(userImage);
-
-            if(res_addFace.status) {
-                console.log("Add")
-
-                const {FaceRecords} = res_addFace;
-                const faceId = FaceRecords[0]["Face"]["FaceId"];
-                const gender = FaceRecords[0]["FaceDetails"]["Gender"]["Value"];
-                const age = (FaceRecords[0]["FaceDetails"]["AgeRange"]["High"] + FaceRecords[0]["FaceDetails"]["AgeRange"]["Low"]) / 2;
-
-                console.log("About to call verifyPhoneNumber...")
-
-                
-
-                
-
-                const userInfo = TEMPLATE.USER_INFO_TEMPLATE;
-                userInfo.faceId = faceId;
-                userInfo.sex = gender;
-                userInfo.age = age;
-                userInfo.firstName = firstName;
-                userInfo.lastName = lastName;
-                userInfo.email = email;
-                userInfo.phoneNumber = phoneNumber;
-
-
-
-                
-
-                console.log("Person Data: ", userInfo)
-
-
-            }
-        } else {
+            handleShowTwilioModal(true)
+            
+        } else if (res.status == 0){
             console.log("CreateAccount Route 3")
+            setSomethingWentWrong(true)
         }
 
         
@@ -159,6 +111,37 @@ const CreateAccountModal = (props) => {
         //   }
     }
 
+    const finishHandleCreateAccount = async () => {
+
+        const res_addFace = await rekognition_api.addFace(userImage);
+
+        if(res_addFace.status == 1 && ) {
+            console.log("Add")
+
+            const {FaceRecords} = res_addFace;
+            const faceId = FaceRecords[0]["Face"]["FaceId"];
+            const gender = FaceRecords[0]["FaceDetails"]["Gender"]["Value"];
+            const age = (FaceRecords[0]["FaceDetails"]["AgeRange"]["High"] + FaceRecords[0]["FaceDetails"]["AgeRange"]["Low"]) / 2;
+
+            console.log("About to call verifyPhoneNumber...")
+
+            
+
+            
+
+            const userInfo = TEMPLATE.USER_INFO_TEMPLATE;
+            userInfo.faceId = faceId;
+            userInfo.sex = gender;
+            userInfo.age = age;
+            userInfo.firstName = firstName;
+            userInfo.lastName = lastName;
+            userInfo.email = email;
+            userInfo.phoneNumber = phoneNumber;
+
+            console.log("Person Data: ", userInfo)
+        }
+    }
+
     useEffect(() => {
         // console.log(userImage)
 
@@ -172,6 +155,14 @@ const CreateAccountModal = (props) => {
     }, [userImage])
 
     useEffect(() => {
+
+        if(isCodeConfirmed) {
+            finishHandleCreateAccount();
+        }
+
+    }, [isCodeConfirmed])
+
+    useEffect(() => {
         if(firstName.length < 1 || lastName.length < 1 || phoneNumber.length < 1 || email.length < 1 || userImage == null || multipleFacesDetected || !isOnlyOneFaceDetected )
             setDisableSubmitButton(true)
         else
@@ -182,6 +173,9 @@ const CreateAccountModal = (props) => {
 
   return (
     <div>
+        {someWentWrong? <Alert variant="danger">Something went Wrong! Please press cancel and restart</Alert> : null}
+        {isUserAlreadyExists? <Alert variant="danger">Looks like you already have an account. Please log in!</Alert> : null}
+
         <Modal
         show={props.show} 
         onHide={props.handleClose} 
@@ -210,7 +204,7 @@ const CreateAccountModal = (props) => {
                 }
 
                 <TwilioModal show={showTwilioModal} handleClose={handleCloseTwilioModal} phoneNumber={phoneNumber} setIsCodeConfirmed={setIsCodeConfirmed} 
-                onCancelButton={onCancelButton}/>
+                onCancelButton={onCancelButton} finishHandleCreateAccount={finishHandleCreateAccount}/>
             </Modal.Header>
 
             <Modal.Body>

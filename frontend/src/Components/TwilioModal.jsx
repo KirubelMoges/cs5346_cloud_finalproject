@@ -4,29 +4,35 @@ import TwilioAPI from '../Api/TwilioAPI'
 
 const TwilioModal = (props) => {
 
-    const [code, setCode] = useState(null)
+    const [code, setCode] = useState('')
     const [isWrongCode, setIsWrongCode] = useState(false)
     const [disableSubmitButton, setDisableSubmitButton] = useState(true)
 
-    const randomGeneratedCode = Math.random(100000) + 1000;
+    const randomGeneratedCode = Math.floor(Math.random() * 10000) + 1000;
     const messageToUser = `Mustang-Go Services: You authentication code is ${randomGeneratedCode}`
 
-    const twilioApi = new TwilioAPI()
+    
 
-    const content = {
-        messageContent: {
-            body: messageToUser,
-            from: '',
-            to: props.phoneNumber
+    const sendMessageToUser = async () => {
+        if(props.show) {
+            console.log("sendMessage Called: ")
+            const twilioApi = new TwilioAPI()
+            const content = {
+                messageContent: {
+                    body: messageToUser,
+                    from: '',
+                    to: props.phoneNumber
+                }
+            }
+            const response = await twilioApi.sendMessage(content)
         }
     }
 
     const onSubmitCodeButton = async () => {
-        const response = await twilioApi.sendMessage(content)
-
-        console.log("Twilio.jsx Response: ", response)
         if(code == randomGeneratedCode) {
             props.setIsCodeConfirmed(true)
+            props.finishHandleCreateAccount()
+            console.log("Code Twilio Confirmed YAY!!")
         } else {
             setIsWrongCode(true)
         }
@@ -39,6 +45,15 @@ const TwilioModal = (props) => {
             setDisableSubmitButton(false)
 
     }, [code])
+
+    const onCancelButton = () => {
+        setIsWrongCode(false)
+        props.onCancelButton()
+    }
+
+    useEffect(() => {
+        sendMessageToUser()
+    }, [props.show])
 
   return (
     <div>
@@ -68,7 +83,7 @@ const TwilioModal = (props) => {
                         </Form.Group>
                 </Modal.Body>
             <Modal.Footer>
-                    <Button style={{margin: '5px'}} onClick={props.onCancelButton}>Cancel</Button>
+                    <Button style={{margin: '5px'}} onClick={onCancelButton}>Cancel</Button>
                     <Button style={{margin: '5px'}} onClick={onSubmitCodeButton} disabled={disableSubmitButton}>Submit Code</Button>
             </Modal.Footer>
         </Modal>
