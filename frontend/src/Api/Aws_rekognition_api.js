@@ -11,60 +11,23 @@ export default class AWS_Rekognition_API_Repository {
       },
     };
 
-    async searchUser(userImageFile) {
-      const errors = {};
-        const { data, status } = await axios.get(this.url + '/searchuser', {
-            params: { userImageFile }
-          });
-
-          if (status >= 201) {
-            console.log(data);
-            errors.request = 'Bad Request';
-          } 
-    
-          return [data.data, errors];
+    async searchUser(userImage) {
+        const {data} = await axios.post(this.url + '/searchuser', JSON.stringify({userImage}), this.config);
+        return data
     }
 
     async detectFaces(userImage) {
-      console.log("Inside frontend detect faces...", userImage)
-
-      const errors = {};
-
-       const { data, status } = await axios.post(this.url + '/detectfaces', JSON.stringify({userImage}), config);
-
-          if (status >= 201) {
-            console.log(data);
-            errors.request = 'Bad Request';
-          } 
-    
-          return [data.data, errors];
+        const {data} = await axios.post(this.url + '/detectfaces', JSON.stringify({userImage}), this.config);
+        return data
     }
 
-    async addFace(userImageFile) {
-      const errors = {};
-        const { data, status } = await axios.get(this.url + '/addface', {
-            params: { userImageFile }
-          });
-
-          if (status >= 201) {
-            console.log(data);
-            errors.request = 'Bad Request';
-          } 
-    
-          return [data.data, errors];
+    async addFace(userImage) {
+        const {data} = await axios.get(this.url + '/addface', JSON.stringify({userImage}), this.config);
+        return data
     }
 
-    async deleteUser(userImageFile) {
-      const errors = {};
-        const { data, status } = await axios.get(this.url + '/deleteuser', {
-            params: { userImageFile }
-          });
-
-          if (status >= 201) {
-            console.log(data);
-            errors.request = 'Bad Request';
-          } 
-    
-          return [data.data, errors];
+    async deleteUser(userImage) {
+        const {data} = await axios.get(this.url + '/deleteuser', JSON.stringify({userImage}), this.config);
+        return data
     }
 };

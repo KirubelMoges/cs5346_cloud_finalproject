@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react'
-import { Button, Modal, Form, FormGroup, Spinner } from 'react-bootstrap';
+import { Button, Modal, Form, FormGroup, Spinner, Alert } from 'react-bootstrap';
 import WebCamVerificationScreen from './WebCamVerificationScreen';
 import AWS_Rekognition_API_Repository from '../Api/Aws_rekognition_api'
 
@@ -12,6 +12,9 @@ const CreateAccountModal = (props) => {
     const [userImage, setUserImage] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
     const [disableSubmitButton, setDisableSubmitButton] = useState(false)
+    const [multipleFacesDetected, setMultipleFacesDetected] = useState(false)
+    const [isOnlyOneFaceDetected, setIsOnlyOneFaceDetected] = useState(false)
+    const [isUserAlreadyExists, setIsUserAlreadyExists] = useState(false)
 
     const rekognition_api = new AWS_Rekognition_API_Repository();
 
@@ -24,10 +27,25 @@ const CreateAccountModal = (props) => {
     };
 
     const onCaptureUserImage = async () => {
+        setIsUserAlreadyExists(false)
         let base64_image_string = String(userImage).replace('data:image/jpeg;base64,', '')
-       const res = await rekognition_api.detectFaces(base64_image_string);
+        const res = await rekognition_api.detectFaces(base64_image_string);
 
-       console.log("CreateModal Rek Response: ", res)
+        if(res.status && res.data.FaceDetails.length > 1) {
+            setMultipleFacesDetected(true)
+        }
+        else if(res.status && res.data.FaceDetails.length == 1) {
+            setIsOnlyOneFaceDetected(true)
+        }
+        else if(res.status && res.data.FaceDetails.length == 0) {
+            setMultipleFacesDetected(false)
+            setIsOnlyOneFaceDetected(false)
+        }
+    }
+
+    const resetImageState = () => {
+        setMultipleFacesDetected(false)
+        setIsOnlyOneFaceDetected(false)
     }
 
     const onCancelButton = () => {
@@ -41,7 +59,35 @@ const CreateAccountModal = (props) => {
         e.preventDefault();
         setIsLoading(true);
 
-        // const res = await rekognition_api.searchUser(userImage);
+        const res = await rekognition_api.searchUser(userImage);
+
+        console.log('Search User: ', res)
+
+        if(res.status && res.data.FaceMatches.length > 0) {
+            setIsUserAlreadyExists(true)
+            clearUserData()
+            setIsLoading(false);
+            return
+        } 
+        else if (res.status && res.data.FaceMatches.length == 1) {
+            const res_addFace = await rekognition_api.addFace(userImage);
+
+
+            if(res_addFace.status) {
+                const {FaceRecords} = res_addFace;
+                const faceId = FaceRecords[0]["Face"]["FaceId"];
+                const gender = FaceRecords[0]["FaceDetails"]["Gender"]["Value"];
+                const age = (FaceRecords[0]["FaceDetails"]["AgeRange"]["High"] + FaceRecords[0]["FaceDetails"]["AgeRange"]["Low"]) / 2;
+
+                console.log("Person Data: ", {faceId, gender, age})
+            }
+        }
+
+        
+        
+
+
+        setIsLoading(false);
 
         // if(res) setIsLoading(false);
 
@@ -60,12 +106,16 @@ const CreateAccountModal = (props) => {
 
         if(userImage) {
             onCaptureUserImage()
+        } else {
+            //Reset multipleFaceDetected state to false when user wants to retake image after warning
+            console.log("User image is: ", userImage)
+            resetImageState()
         }
 
     }, [userImage])
 
     useEffect(() => {
-        if(firstName.length < 1 || lastName.length < 1 || phoneNumber.length < 1 || email.length < 1 || userImage == null )
+        if(firstName.length < 1 || lastName.length < 1 || phoneNumber.length < 1 || email.length < 1 || userImage == null || multipleFacesDetected || !isOnlyOneFaceDetected )
             setDisableSubmitButton(true)
         else
             setDisableSubmitButton(false)
@@ -87,7 +137,20 @@ const CreateAccountModal = (props) => {
         >
             <Modal.Header>
                 <Modal.Title>Create Account</Modal.Title>
+                {multipleFacesDetected? 
+
+                <> <Alert variant="warning">Oops! Only one face is allowed per image! Please retake image!</Alert> </> 
+                
+                :
+                isOnlyOneFaceDetected? 
+                <> <Alert variant='success'>Perfect shot!</Alert></> : null}
                 {isLoading? <Spinner animation="grow" /> : null}
+
+                {isUserAlreadyExists?
+                <><Alert variant='warning'>Hmm looks like you already have a profile! Please Log in</Alert></>
+                :
+                <></>
+                }
             </Modal.Header>
 
             <Modal.Body>
