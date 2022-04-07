@@ -2,6 +2,8 @@ import React, {useState, useEffect} from 'react'
 import { Button, Modal, Form, FormGroup, Spinner, Alert } from 'react-bootstrap';
 import WebCamVerificationScreen from './WebCamVerificationScreen';
 import AWS_Rekognition_API_Repository from '../Api/Aws_rekognition_api'
+import * as TEMPLATE from './templates/Template'
+import TwilioModal from './TwilioModal';
 
 const CreateAccountModal = (props) => {
 
@@ -15,6 +17,12 @@ const CreateAccountModal = (props) => {
     const [multipleFacesDetected, setMultipleFacesDetected] = useState(false)
     const [isOnlyOneFaceDetected, setIsOnlyOneFaceDetected] = useState(false)
     const [isUserAlreadyExists, setIsUserAlreadyExists] = useState(false)
+    const [isCodeConfirmed, setIsCodeConfirmed] = useState(false)
+
+    const [showTwilioModal, setShowTwilioModal] = useState(false)
+
+    const handleCloseTwilioModal = () => setShowTwilioModal(false);
+    const handleShowTwilioModal = () => setShowTwilioModal(true);
 
     const rekognition_api = new AWS_Rekognition_API_Repository();
 
@@ -24,6 +32,10 @@ const CreateAccountModal = (props) => {
         setPhoneNumber('')
         setEmail('')
         setUserImage(null)
+        setIsLoading(false)
+        setDisableSubmitButton(true)
+        setIsUserAlreadyExists(false)
+        setIsCodeConfirmed(false)
     };
 
     const onCaptureUserImage = async () => {
@@ -53,34 +65,80 @@ const CreateAccountModal = (props) => {
         clearUserData()
     }
 
+    const verifyUserPhoneNumber = async () => {
+        handleShowTwilioModal();
+
+        // let limit = 10000000000
+        // for(let i = 0; i < limit; i++) {
+        //     if(isCodeConfirmed || !showTwilioModal) break
+        //     else {
+        //         if(limit - 1000 < i) i = 0;
+        //     }
+        // }
+
+        return
+    }
+
 
 
     const handleCreateAccount = async (e) => {
         e.preventDefault();
         setIsLoading(true);
 
-        const res = await rekognition_api.searchUser(userImage);
+        let base64_image_string = String(userImage).replace('data:image/jpeg;base64,', '')
+        const res = await rekognition_api.searchUser(base64_image_string);
 
         console.log('Search User: ', res)
+        console.log("Face: ", res.data.FaceMatches.length)
 
-        if(res.status && res.data.FaceMatches.length > 0) {
+        if(res.status == 1 && res.data.FaceMatches.length > 0) {
+            console.log("CreateAccount Route 1")
             setIsUserAlreadyExists(true)
             clearUserData()
             setIsLoading(false);
             return
         } 
-        else if (res.status && res.data.FaceMatches.length == 1) {
+        else if (res.status == 1 && res.data.FaceMatches.length == 0) {
+            console.log("CreateAccount Route 2")
+            console.log("About to Verify phone number")
+            await verifyUserPhoneNumber()
+
+            console.log("About to call add face...")
             const res_addFace = await rekognition_api.addFace(userImage);
 
-
             if(res_addFace.status) {
+                console.log("Add")
+
                 const {FaceRecords} = res_addFace;
                 const faceId = FaceRecords[0]["Face"]["FaceId"];
                 const gender = FaceRecords[0]["FaceDetails"]["Gender"]["Value"];
                 const age = (FaceRecords[0]["FaceDetails"]["AgeRange"]["High"] + FaceRecords[0]["FaceDetails"]["AgeRange"]["Low"]) / 2;
 
-                console.log("Person Data: ", {faceId, gender, age})
+                console.log("About to call verifyPhoneNumber...")
+
+                
+
+                
+
+                const userInfo = TEMPLATE.USER_INFO_TEMPLATE;
+                userInfo.faceId = faceId;
+                userInfo.sex = gender;
+                userInfo.age = age;
+                userInfo.firstName = firstName;
+                userInfo.lastName = lastName;
+                userInfo.email = email;
+                userInfo.phoneNumber = phoneNumber;
+
+
+
+                
+
+                console.log("Person Data: ", userInfo)
+
+
             }
+        } else {
+            console.log("CreateAccount Route 3")
         }
 
         
@@ -108,7 +166,6 @@ const CreateAccountModal = (props) => {
             onCaptureUserImage()
         } else {
             //Reset multipleFaceDetected state to false when user wants to retake image after warning
-            console.log("User image is: ", userImage)
             resetImageState()
         }
 
@@ -151,6 +208,9 @@ const CreateAccountModal = (props) => {
                 :
                 <></>
                 }
+
+                <TwilioModal show={showTwilioModal} handleClose={handleCloseTwilioModal} phoneNumber={phoneNumber} setIsCodeConfirmed={setIsCodeConfirmed} 
+                onCancelButton={onCancelButton}/>
             </Modal.Header>
 
             <Modal.Body>

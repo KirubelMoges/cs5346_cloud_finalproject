@@ -10,6 +10,13 @@ module.exports = function routes(app, logger) {
    const PRODUCT_COLLECTION_MONGODB = "products";
    const PURCHASE_HISTORY_COLLECTION_MONGODB = "purchase-history";
 
+   const twilio_accountSid = process.env.TWILIO_ACCOUNT_SID; // Your Account SID from www.twilio.com/console
+   const twilio_authToken = process.env.TWILIO_AUTH_TOKEN;   // Your Auth Token from www.twilio.com/console
+   const system_twilio_phoneNumber = process.env.TWILIO_PHONE_NUMBER; // Your Twilio Phone Number
+
+
+   const client = require('twilio')(twilio_accountSid, twilio_authToken);
+
 
     const rekognition_collection_id = 'mustang-go-image-collection'
 
@@ -32,7 +39,7 @@ module.exports = function routes(app, logger) {
     app.post('/searchuser', (req, res) => {
       let userImage = req.body['userImage'];
 
-      console.log("From Routes, Search Image: ", userImage)
+      //console.log("From Routes, Search Image: ", userImage)
 
      const imageBuffer = Buffer.from(decodeURIComponent(userImage), 'base64');
 
@@ -305,6 +312,40 @@ module.exports = function routes(app, logger) {
             await mongoClient.close()
          }
          
-
          });
+
+   
+         /**
+   * 
+   * @param {messageContent} - message
+   * @returns {0, 1} - 0: Failed . 1: Success
+   */
+          app.post('/twilioMessage', async (req, res) => {
+
+            
+
+            const {messageContent} = req.body['messageContent']
+            messageContent.from = system_twilio_phoneNumber
+
+            console.log("Twilio Message: ", messageContent)
+
+            try {
+               client.messages
+               .create(messageContent)
+               .then(
+                  message => {console.log(message.sid)
+                     res.status(200).json({
+                        status: 1,
+                        data
+                        });
+                  
+                  })
+            } catch(err) {
+               res.status(400).json({
+                  status: 0, 
+                  err
+                  });
+            }
+            
+            });
 }
