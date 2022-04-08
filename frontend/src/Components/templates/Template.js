@@ -9,7 +9,7 @@ export const USER_INFO_TEMPLATE = {
     street: String,
     city: String,
     state: String,
-    zipcode: Number,
+    country: Number,
 }
 
 export const PRODUCT_INFO_TEMPLATE = {

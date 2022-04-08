@@ -18,7 +18,7 @@ const WebCamVerificationScreen = (props) => {
                     <div>
                         <img src={props.userImage}/>
                         <br />
-                        <Button style={{backgroundColor: 'green'}} onClick={() => props.setUserImage(null)}>Retake Picture</Button>
+                        <Button style={{backgroundColor: 'green'}} onClick={() => props.retakeImageButtonClicked()}>Retake Picture</Button>
                     </div>
                 :
 

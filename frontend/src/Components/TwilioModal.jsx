@@ -7,15 +7,19 @@ const TwilioModal = (props) => {
     const [code, setCode] = useState('')
     const [isWrongCode, setIsWrongCode] = useState(false)
     const [disableSubmitButton, setDisableSubmitButton] = useState(true)
+    const [randomCode, setRandomCode] = useState(0)
 
-    const randomGeneratedCode = Math.floor(Math.random() * 10000) + 1000;
-    const messageToUser = `Mustang-Go Services: You authentication code is ${randomGeneratedCode}`
+    var randomGeneratedCode = '';
+    var messageToUser = '';
 
     
 
     const sendMessageToUser = async () => {
         if(props.show) {
-            console.log("sendMessage Called: ")
+            randomGeneratedCode = Math.floor(Math.random() * 10000) + 1000;
+            setRandomCode(randomGeneratedCode)
+            messageToUser = `Mustang-Go Services: You authentication code is ${randomGeneratedCode}`
+            console.log("T Modal Message: ", messageToUser)
             const twilioApi = new TwilioAPI()
             const content = {
                 messageContent: {
@@ -28,11 +32,12 @@ const TwilioModal = (props) => {
         }
     }
 
-    const onSubmitCodeButton = async () => {
-        if(code == randomGeneratedCode) {
+    const onSubmitCodeButton = () => {
+        console.log("Code Twilio Confirmed!!", {code, randomCode})
+        if(code == randomCode) {
             props.setIsCodeConfirmed(true)
             props.finishHandleCreateAccount()
-            console.log("Code Twilio Confirmed YAY!!")
+            console.log("Code Twilio Confirmed!!")
         } else {
             setIsWrongCode(true)
         }
@@ -47,8 +52,9 @@ const TwilioModal = (props) => {
     }, [code])
 
     const onCancelButton = () => {
-        setIsWrongCode(false)
-        props.onCancelButton()
+        setIsWrongCode(false);
+        setDisableSubmitButton(true);
+        props.onCancelButton();
     }
 
     useEffect(() => {

@@ -1,6 +1,8 @@
 
 const AWS = require('aws-sdk');
 const { MongoClient } = require("mongodb");
+const Stripe = require('stripe');
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 require('dotenv').config();
 
 
@@ -73,13 +75,15 @@ module.exports = function routes(app, logger) {
    * @param {userImage} userImage - base64 encoded image of user
    * @returns {0, 1} - 0: feature not added or invalid input. 1: user image feature extracted & added to collection
    */
-     app.post('/addImageFeatureToCollection', (req, res) => {
+     app.post('/indexFacialFeatureToCollection', (req, res) => {
+
       let userImage = req.body['userImage'];
 
      const imageBuffer = Buffer.from(decodeURIComponent(userImage), 'base64');
 
         var index_faces_param = {
          "CollectionId": rekognition_collection_id,
+         "DetectionAttributes": [ "ALL" ],
          "Image": { 
             "Bytes": imageBuffer,
          },
@@ -106,7 +110,7 @@ module.exports = function routes(app, logger) {
    * @param {None} - base64 encoded image of user
    * @returns {0, 1} - 0: Collection not dropped. 1: Collection dropped
    */
-      app.delete('/dropCollection', (req, res) => {
+      app.delete('/dropRekognitionCollection', (req, res) => {
          var delete_collection_params = {
             CollectionId: rekognition_collection_id
             };
@@ -221,7 +225,7 @@ module.exports = function routes(app, logger) {
    * @param {userInfo} - templated content about the user that created an account
    * @returns {0, 1} - 0: Failed to store info . 1: User info successfully stored in mongodb
    */
-       app.post('/adduserinfo', async (req, res) => {
+       app.post('/addUserInfo', async (req, res) => {
 
          let userInfo = req.body['userInfo']
 
@@ -254,7 +258,7 @@ module.exports = function routes(app, logger) {
    * @param {productInfo} - templated content about product info
    * @returns {0, 1} - 0: Failed to product info . 1: product info successfully stored in mongodb
    */
-       app.post('/adduserinfo', async (req, res) => {
+       app.post('/addProductInfo', async (req, res) => {
 
          let productInfo = req.body['productInfo']
 
@@ -320,32 +324,66 @@ module.exports = function routes(app, logger) {
    * @param {messageContent} - message
    * @returns {0, 1} - 0: Failed . 1: Success
    */
-          app.post('/twilioMessage', async (req, res) => {
+         app.post('/twilioMessage', async (req, res) => {
 
-            
+         
 
-            const {messageContent} = req.body['messageContent']
-            messageContent.from = system_twilio_phoneNumber
+         const {messageContent} = req.body['messageContent']
+         messageContent.from = system_twilio_phoneNumber
+
+         console.log("Twilio Message: ", messageContent)
+
+         try {
+            client.messages
+            .create(messageContent)
+            .then(
+               message => {console.log(message.sid)
+                  res.status(200).json({
+                     status: 1,
+                     data
+                     });
+               
+               })
+         } catch(err) {
+            res.status(400).json({
+               status: 0, 
+               err
+               });
+         }
+         
+         });
+
+            /**
+   * 
+   * @param {messageContent} - message
+   * @returns {0, 1} - 0: Failed . 1: Success
+   */
+         app.post('/payment', async (req, res) => {
+
+            let { amount, id } = req.body
 
             console.log("Twilio Message: ", messageContent)
 
             try {
-               client.messages
-               .create(messageContent)
-               .then(
-                  message => {console.log(message.sid)
-                     res.status(200).json({
-                        status: 1,
-                        data
-                        });
-                  
-                  })
+               const data = await stripe.paymentIntents.create({
+                  amount,
+                  currency: "USD",
+                  description: "Mustang-Go Services",
+                  payment_method: id,
+                  confirm: true
+               })
+
+               res.status(200).json({
+                  status: 1,
+                  data
+                  });
+
             } catch(err) {
                res.status(400).json({
                   status: 0, 
                   err
                   });
             }
-            
-            });
+         
+         });
 }

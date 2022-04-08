@@ -4,6 +4,15 @@ import WebCamVerificationScreen from './WebCamVerificationScreen';
 import AWS_Rekognition_API_Repository from '../Api/Aws_rekognition_api'
 import * as TEMPLATE from './templates/Template'
 import TwilioModal from './TwilioModal';
+import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
+import MongoAPI from '../Api/MongoAPI';
+import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js"
+import { Elements } from "@stripe/react-stripe-js"
+import { loadStripe } from "@stripe/stripe-js"
+
+const rekognition_api = new AWS_Rekognition_API_Repository();
+const mongoAPI = new MongoAPI()
+const stripeTestPromise = loadStripe('pk_test_51HVJJsLuWigwOfjktskWjOFiFgVQemgUC1PuGP3fdM1U1sUnKaVtSWvbA8vlcezy76OBcpqtekF6xOjfJS2NYv2Y00GNCWK0bo')
 
 const CreateAccountModal = (props) => {
 
@@ -12,6 +21,15 @@ const CreateAccountModal = (props) => {
     const [phoneNumber, setPhoneNumber] = useState('')
     const [email, setEmail] = useState('')
     const [userImage, setUserImage] = useState(null)
+
+    const [streetAddress, setStreetAddress] = useState('')
+    const [city, setCity] = useState('')
+    const [state, setCityState] = useState('')
+    const [country, setCountry] = useState('')
+    const [fullAddress, setFullAddress] = useState('')
+    const [value, setValue] = useState(null);
+
+
     const [isLoading, setIsLoading] = useState(false)
     const [disableSubmitButton, setDisableSubmitButton] = useState(false)
     const [multipleFacesDetected, setMultipleFacesDetected] = useState(false)
@@ -25,13 +43,15 @@ const CreateAccountModal = (props) => {
     const handleCloseTwilioModal = () => setShowTwilioModal(false);
     const handleShowTwilioModal = () => setShowTwilioModal(true);
 
-    const rekognition_api = new AWS_Rekognition_API_Repository();
-
     const clearUserData = () => {
         setFirstName('')
         setLastName('')
         setPhoneNumber('')
         setEmail('')
+        retakeImageButtonClicked()
+    };
+
+    const retakeImageButtonClicked = () => {
         setUserImage(null)
         setIsLoading(false)
         setDisableSubmitButton(true)
@@ -39,7 +59,9 @@ const CreateAccountModal = (props) => {
         setIsCodeConfirmed(false)
         setShowTwilioModal(false)
         setSomethingWentWrong(false)
-    };
+        setMultipleFacesDetected(false)
+        setIsOnlyOneFaceDetected(false)
+    }
 
     const onCaptureUserImage = async () => {
         setIsUserAlreadyExists(false)
@@ -68,8 +90,19 @@ const CreateAccountModal = (props) => {
         clearUserData()
     }
 
+    const parseFullAddress = () => {
+        if(fullAddress) {
+            let {label} = fullAddress;
+            setStreetAddress(label.split(',')[0])
+            setCity(label.split(',')[1])
+            setCityState(label.split(',')[2])
+            setCountry(label.split(',')[3])
+        }
+    }
+
     const handleCreateAccount = async (e) => {
         e.preventDefault();
+        parseFullAddress()
         setIsLoading(true);
 
         let base64_image_string = String(userImage).replace('data:image/jpeg;base64,', '')
@@ -80,10 +113,8 @@ const CreateAccountModal = (props) => {
 
         if(res.status == 1 && res.data.FaceMatches.length > 0) {
             console.log("CreateAccount Route 1")
-            setIsUserAlreadyExists(true)
-            clearUserData()
-            setIsLoading(false);
-            return
+            setIsOnlyOneFaceDetected(false);
+            setIsUserAlreadyExists(true);
         } 
         else if (res.status == 1 && res.data.FaceMatches.length == 0) {
             handleShowTwilioModal(true)
@@ -92,10 +123,6 @@ const CreateAccountModal = (props) => {
             console.log("CreateAccount Route 3")
             setSomethingWentWrong(true)
         }
-
-        
-        
-
 
         setIsLoading(false);
 
@@ -113,22 +140,17 @@ const CreateAccountModal = (props) => {
 
     const finishHandleCreateAccount = async () => {
 
-        const res_addFace = await rekognition_api.addFace(userImage);
+        let base64_image_string = String(userImage).replace('data:image/jpeg;base64,', '')
+        const res_addFace = await rekognition_api.addFacialFeature(base64_image_string);
 
-        if(res_addFace.status == 1 && ) {
-            console.log("Add")
+        if(res_addFace.status == 1) {
 
-            const {FaceRecords} = res_addFace;
-            const faceId = FaceRecords[0]["Face"]["FaceId"];
-            const gender = FaceRecords[0]["FaceDetails"]["Gender"]["Value"];
-            const age = (FaceRecords[0]["FaceDetails"]["AgeRange"]["High"] + FaceRecords[0]["FaceDetails"]["AgeRange"]["Low"]) / 2;
-
-            console.log("About to call verifyPhoneNumber...")
+            const faceRecords = res_addFace["data"]["FaceRecords"]; 
+            const faceId = faceRecords[0]["Face"]["FaceId"];
+            const gender = faceRecords[0]["FaceDetail"]["Gender"]["Value"];
+            const age = (faceRecords[0]["FaceDetail"]["AgeRange"]["High"] + faceRecords[0]["FaceDetail"]["AgeRange"]["Low"]) / 2;
 
             
-
-            
-
             const userInfo = TEMPLATE.USER_INFO_TEMPLATE;
             userInfo.faceId = faceId;
             userInfo.sex = gender;
@@ -137,8 +159,25 @@ const CreateAccountModal = (props) => {
             userInfo.lastName = lastName;
             userInfo.email = email;
             userInfo.phoneNumber = phoneNumber;
+            userInfo.street = streetAddress;
+            userInfo.city = city;
+            userInfo.state = state;
+            userInfo.country = country
 
             console.log("Person Data: ", userInfo)
+
+            // const res_mongo = await mongoAPI.addUserInfo(userInfo)
+            // console.log("CreateAccount Mongo Response: ", res_mongo)
+
+            // if(res_mongo.status) {
+
+            // } else {
+            //     setSomethingWentWrong(true)
+            // }
+
+
+        } else if (res_addFace.status == 0) {
+            setSomethingWentWrong(true)
         }
     }
 
@@ -163,13 +202,12 @@ const CreateAccountModal = (props) => {
     }, [isCodeConfirmed])
 
     useEffect(() => {
-        if(firstName.length < 1 || lastName.length < 1 || phoneNumber.length < 1 || email.length < 1 || userImage == null || multipleFacesDetected || !isOnlyOneFaceDetected )
+        if(firstName.length < 1 || lastName.length < 1 || phoneNumber.length != 10 || email.length < 1 || userImage == null || multipleFacesDetected || !isOnlyOneFaceDetected )
             setDisableSubmitButton(true)
         else
             setDisableSubmitButton(false)
 
     }, [firstName, lastName, phoneNumber, email])
-
 
   return (
     <div>
@@ -198,7 +236,7 @@ const CreateAccountModal = (props) => {
                 {isLoading? <Spinner animation="grow" /> : null}
 
                 {isUserAlreadyExists?
-                <><Alert variant='warning'>Hmm looks like you already have a profile! Please Log in</Alert></>
+                <><Alert variant='danger'>Hmm looks like you already have a profile! Please Log in</Alert></>
                 :
                 <></>
                 }
@@ -208,16 +246,16 @@ const CreateAccountModal = (props) => {
             </Modal.Header>
 
             <Modal.Body>
-                <WebCamVerificationScreen setUserImage={setUserImage} userImage={userImage}/>
+                <WebCamVerificationScreen setUserImage={setUserImage} userImage={userImage} retakeImageButtonClicked={retakeImageButtonClicked}/>
 
                     <Form.Group className="mb-3" controlId="firstName">
                         <Form.Label>First Name</Form.Label>
-                        <Form.Control type="firstName" value={firstName} onChange={e => setFirstName(e.target.value)}/>
+                        <Form.Control type="text" value={firstName} onChange={e => setFirstName(e.target.value)}/>
                     </Form.Group>
 
                     <Form.Group className="mb-3" controlId="lastName">
                         <Form.Label>Last Name</Form.Label>
-                        <Form.Control type="lastName" value={lastName} onChange={e => setLastName(e.target.value)}/>
+                        <Form.Control type="text" value={lastName} onChange={e => setLastName(e.target.value)}/>
                     </Form.Group>
 
                     <Form.Group className="mb-3" controlId="email">
@@ -227,7 +265,7 @@ const CreateAccountModal = (props) => {
 
                     <Form.Group className="mb-3" controlId="phoneNumber">
                         <Form.Label>Phone Number</Form.Label>
-                        <Form.Control type="phoneNumber" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} 
+                        <Form.Control type="test" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} 
                         
                         onKeyPress={(event) => {
                             if (!/[0-9]/.test(event.key)) {
@@ -236,6 +274,25 @@ const CreateAccountModal = (props) => {
                           }}
                         
                         />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3" controlId="fullAddress">
+                        <Form.Label>Type Address here:</Form.Label>
+                        <GooglePlacesAutocomplete
+                            selectProps={{
+                            fullAddress,
+                            onChange: setFullAddress
+                            }}
+                            
+                        />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3" controlId="payment">
+                        <Form.Label>Card Payment Details</Form.Label>
+                        <Elements stripe={stripeTestPromise}>
+                            <CardElement/>
+                        </Elements>
+            
                     </Form.Group>
             </Modal.Body>
 

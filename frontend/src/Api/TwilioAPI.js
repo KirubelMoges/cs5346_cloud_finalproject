@@ -11,7 +11,6 @@ import axios from 'axios';
       };
 
     async sendMessage(messageContent) {
-        console.log("Twilio API Sending...", messageContent)
         const {data} = await axios.post(this.url + '/twilioMessage', JSON.stringify({messageContent}), this.config);
         return data
     }
