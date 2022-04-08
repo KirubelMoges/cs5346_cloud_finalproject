@@ -6,13 +6,13 @@ import * as TEMPLATE from './templates/Template'
 import TwilioModal from './TwilioModal';
 import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
 import MongoAPI from '../Api/MongoAPI';
+
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js"
-import { Elements } from "@stripe/react-stripe-js"
-import { loadStripe } from "@stripe/stripe-js"
+import StripeAPI from '../Api/StripeAPI';
 
 const rekognition_api = new AWS_Rekognition_API_Repository();
 const mongoAPI = new MongoAPI()
-const stripeTestPromise = loadStripe('pk_test_51HVJJsLuWigwOfjktskWjOFiFgVQemgUC1PuGP3fdM1U1sUnKaVtSWvbA8vlcezy76OBcpqtekF6xOjfJS2NYv2Y00GNCWK0bo')
+const stripeAPI = new StripeAPI()
 
 const CreateAccountModal = (props) => {
 
@@ -27,7 +27,9 @@ const CreateAccountModal = (props) => {
     const [state, setCityState] = useState('')
     const [country, setCountry] = useState('')
     const [fullAddress, setFullAddress] = useState('')
-    const [value, setValue] = useState(null);
+    
+    const stripe = useStripe()
+    const elements = useElements()
 
 
     const [isLoading, setIsLoading] = useState(false)
@@ -101,6 +103,29 @@ const CreateAccountModal = (props) => {
     }
 
     const handleCreateAccount = async (e) => {
+
+        const card = elements.getElement(CardElement);
+        const ownerInfo = {email, name: firstName + ' ' + lastName}
+        const res_source = await stripe.createSource(card)
+        const source = res_source["source"]["id"]
+        console.log("Source Frontend: ", res_source)
+        console.log("Source id: ", res_source["source"]["id"])
+
+        const {error, paymentMethod} = await stripe.createPaymentMethod({
+            type: "card",
+            card: elements.getElement(CardElement)
+        })
+        let userPaymentInfo = {source, email}
+        console.log("paymentMethod: ", paymentMethod)
+
+        try {
+            const res_stripe = await stripeAPI.createCustomerPaymentProfile(userPaymentInfo);
+            console.log("res_stripe: ", res_stripe)
+        } catch(e) {
+            console.log("Error with creating account stripe frontend ", e)
+        }
+        
+
         e.preventDefault();
         parseFullAddress()
         setIsLoading(true);
@@ -289,9 +314,8 @@ const CreateAccountModal = (props) => {
 
                     <Form.Group className="mb-3" controlId="payment">
                         <Form.Label>Card Payment Details</Form.Label>
-                        <Elements stripe={stripeTestPromise}>
-                            <CardElement/>
-                        </Elements>
+
+                        <CardElement />
             
                     </Form.Group>
             </Modal.Body>

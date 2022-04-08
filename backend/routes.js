@@ -355,14 +355,12 @@ module.exports = function routes(app, logger) {
 
             /**
    * 
-   * @param {messageContent} - message
+   * @param {userCardInfo} - message
    * @returns {0, 1} - 0: Failed . 1: Success
    */
          app.post('/payment', async (req, res) => {
 
             let { amount, id } = req.body
-
-            console.log("Twilio Message: ", messageContent)
 
             try {
                const data = await stripe.paymentIntents.create({
@@ -386,4 +384,44 @@ module.exports = function routes(app, logger) {
             }
          
          });
+
+
+   /**
+   * 
+   * @param {} - message
+   * @returns {0, 1} - 0: Failed . 1: Success
+   */
+         app.post('/initialPaymentInfo', async (req, res) => {
+
+            console.log("Inside initialPaymentinfo: ", req)
+            let { source, email } = req.body["userPaymentInfo"]
+
+            try {
+               console.log("Creating account stripe: ")
+               const customer = await stripe.customers.create({
+                  email,
+                  source
+                });
+               console.log("Customer Created info: ", customer)
+               const data = await stripe.customers.create({
+                   email: email,
+                   payment_method: id,
+                 });
+
+               console.log("Customer Stripe: ", customer)
+
+               res.status(200).json({
+                  status: 1,
+                  data
+                  });
+
+            } catch(err) {
+               console.log("Sending bad request ")
+               res.status(400).json({
+                  status: 0, 
+                  err
+                  });
+            }
+      
+      });
 }
