@@ -9,8 +9,8 @@ import { loadStripe } from "@stripe/stripe-js"
 const HomePage = () => {
     const [createAccountModal, setShowCreateAccountModal] = useState(false)
     const [loginModal, setShowLoginModal] = useState(false)
-    const stripeTestPromise = loadStripe('pk_test_51HVJJsLuWigwOfjktskWjOFiFgVQemgUC1PuGP3fdM1U1sUnKaVtSWvbA8vlcezy76OBcpqtekF6xOjfJS2NYv2Y00GNCWK0bo')
 
+    const [stripePromise, setStripePromise] = useState(() => loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY))
 
     const handleCloseLoginModal = () => setShowLoginModal(false);
     const handleShowLoginModal = () => setShowLoginModal(true);
@@ -29,7 +29,7 @@ const HomePage = () => {
         </div>
 
 
-        <Elements stripe={stripeTestPromise}>
+        <Elements stripe={stripePromise}>
           <CreateAccount show={createAccountModal} handleClose={handleCloseCreateAccountModal}/>
 	    	</Elements>
         
