@@ -1,5 +1,6 @@
 export const USER_INFO_TEMPLATE = {
     faceId: String,
+    stripeCustomerId: String,
     sex: String,
     age: Number,
     firstName: String,

@@ -1,8 +1,8 @@
 
 const AWS = require('aws-sdk');
 const { MongoClient } = require("mongodb");
-const Stripe = require('stripe');
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 require('dotenv').config();
 
 
@@ -11,6 +11,7 @@ module.exports = function routes(app, logger) {
    const USER_COLLECTION_MONGODB = "users";
    const PRODUCT_COLLECTION_MONGODB = "products";
    const PURCHASE_HISTORY_COLLECTION_MONGODB = "purchase-history";
+   const MONGO_DATABASE_NAME = "mustangGoMongoDB"
 
    const twilio_accountSid = process.env.TWILIO_ACCOUNT_SID; // Your Account SID from www.twilio.com/console
    const twilio_authToken = process.env.TWILIO_AUTH_TOKEN;   // Your Auth Token from www.twilio.com/console
@@ -47,7 +48,7 @@ module.exports = function routes(app, logger) {
 
         var search_image_param = {
          "CollectionId": rekognition_collection_id,
-         "FaceMatchThreshold": 70,
+         "FaceMatchThreshold": 90,
          "Image": { 
             "Bytes": imageBuffer,
          },
@@ -228,29 +229,66 @@ module.exports = function routes(app, logger) {
        app.post('/addUserInfo', async (req, res) => {
 
          let userInfo = req.body['userInfo']
+         console.log("Backend MongoDB userInfo: ", userInfo)
 
          try {
-
+            console.log("Connecting MongoDB backend")
             await mongoClient.connect()
 
+            const database = mongoClient.db(MONGO_DATABASE_NAME);
+
+            console.log("Adding userInfo MongoDB backend")
             const data = await database.collection(USER_COLLECTION_MONGODB).insertOne(userInfo)
+
+            console.log("MongoDB Done. Sending Back...")
+            res.status(200).json({
+               status: 1,
+               data
+               });
+
+            } catch(err) {
+               res.status(400).json({
+                  status: 0, 
+                  err
+                  });
+            } finally {
+
+               await mongoClient.close()
+            }
+         
+         });
+
+      /**
+   * 
+   * @param {faceId} - String faceId
+   * @returns {0, 1} - 0: Failed to get info. 1: UserInfo Found!
+   */
+       app.get('/getUserInfo', async (req, res) => {
+
+         let faceId = req.body['faceId']
+
+         try {
+            await mongoClient.connect()
+
+            const database = mongoClient.db(MONGO_DATABASE_NAME);
+
+            const data = await database.collection(USER_COLLECTION_MONGODB).findOne(faceId)
 
             res.status(200).json({
                status: 1,
                data
                });
 
-         } catch(err) {
-            res.status(400).json({
-               status: 0, 
-               err
-               });
-         } finally {
+            } catch(err) {
+               res.status(400).json({
+                  status: 0, 
+                  err
+                  });
+            } finally {
 
-            await mongoClient.close()
-         }
+               await mongoClient.close()
+            }
          
-
          });
 
       /**
@@ -393,22 +431,13 @@ module.exports = function routes(app, logger) {
    */
          app.post('/initialPaymentInfo', async (req, res) => {
 
-            console.log("Inside initialPaymentinfo: ", req)
             let { source, email } = req.body["userPaymentInfo"]
 
             try {
-               console.log("Creating account stripe: ")
-               const customer = await stripe.customers.create({
-                  email,
-                  source
+               console.log("Creating account stripe: ", {source, email})
+               const data = await stripe.customers.create({source, email},{
+                  apiKey: process.env.STRIPE_SECRET_KEY
                 });
-               console.log("Customer Created info: ", customer)
-               const data = await stripe.customers.create({
-                   email: email,
-                   payment_method: id,
-                 });
-
-               console.log("Customer Stripe: ", customer)
 
                res.status(200).json({
                   status: 1,
@@ -416,7 +445,7 @@ module.exports = function routes(app, logger) {
                   });
 
             } catch(err) {
-               console.log("Sending bad request ")
+               console.log("Sending bad request ", err)
                res.status(400).json({
                   status: 0, 
                   err

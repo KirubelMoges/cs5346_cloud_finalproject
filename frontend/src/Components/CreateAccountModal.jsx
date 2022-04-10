@@ -1,5 +1,6 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useContext} from 'react'
 import { Button, Modal, Form, FormGroup, Spinner, Alert } from 'react-bootstrap';
+import validator from 'validator'
 import WebCamVerificationScreen from './WebCamVerificationScreen';
 import AWS_Rekognition_API_Repository from '../Api/Aws_rekognition_api'
 import * as TEMPLATE from './templates/Template'
@@ -9,10 +10,14 @@ import MongoAPI from '../Api/MongoAPI';
 
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js"
 import StripeAPI from '../Api/StripeAPI';
+import { UserActivity } from '../Api/UserActivity';
+import { UserContext } from '../utils/context';
+
 
 const rekognition_api = new AWS_Rekognition_API_Repository();
 const mongoAPI = new MongoAPI()
 const stripeAPI = new StripeAPI()
+const userActivity = new UserActivity();
 
 const CreateAccountModal = (props) => {
 
@@ -21,6 +26,9 @@ const CreateAccountModal = (props) => {
     const [phoneNumber, setPhoneNumber] = useState('')
     const [email, setEmail] = useState('')
     const [userImage, setUserImage] = useState(null)
+    const [stripeCustomerId, setStripeCustomerId] = useState('')
+
+    const [userContext, setUserContext] = useContext(UserContext);
 
     const [streetAddress, setStreetAddress] = useState('')
     const [city, setCity] = useState('')
@@ -37,7 +45,8 @@ const CreateAccountModal = (props) => {
     const [multipleFacesDetected, setMultipleFacesDetected] = useState(false)
     const [isOnlyOneFaceDetected, setIsOnlyOneFaceDetected] = useState(false)
     const [isUserAlreadyExists, setIsUserAlreadyExists] = useState(false)
-    const [isCodeConfirmed, setIsCodeConfirmed] = useState(false)
+    const [isNoFaceDetected, setIsNoFaceDetected] = useState(false)
+    const [isInvalidEmail, setIsInvalidEmail] = useState(false)
 
     const [showTwilioModal, setShowTwilioModal] = useState(false)
     const [someWentWrong, setSomethingWentWrong] = useState(false)
@@ -58,7 +67,6 @@ const CreateAccountModal = (props) => {
         setIsLoading(false)
         setDisableSubmitButton(true)
         setIsUserAlreadyExists(false)
-        setIsCodeConfirmed(false)
         setShowTwilioModal(false)
         setSomethingWentWrong(false)
         setMultipleFacesDetected(false)
@@ -79,12 +87,14 @@ const CreateAccountModal = (props) => {
         else if(res.status && res.data.FaceDetails.length == 0) {
             setMultipleFacesDetected(false)
             setIsOnlyOneFaceDetected(false)
+            setIsNoFaceDetected(true)
         }
     }
 
     const resetImageState = () => {
         setMultipleFacesDetected(false)
         setIsOnlyOneFaceDetected(false)
+        setIsNoFaceDetected(false)
     }
 
     const onCancelButton = () => {
@@ -102,50 +112,47 @@ const CreateAccountModal = (props) => {
         }
     }
 
+    const validateEmail = () => {
+        if(!validator.isEmail(email)) setIsInvalidEmail(true)
+      }
+
     const handleCreateAccount = async (e) => {
-
-        const card = elements.getElement(CardElement);
-        const ownerInfo = {email, name: firstName + ' ' + lastName}
-        const res_source = await stripe.createSource(card)
-        const source = res_source["source"]["id"]
-        console.log("Source Frontend: ", res_source)
-        console.log("Source id: ", res_source["source"]["id"])
-
-        const {error, paymentMethod} = await stripe.createPaymentMethod({
-            type: "card",
-            card: elements.getElement(CardElement)
-        })
-        let userPaymentInfo = {source, email}
-        console.log("paymentMethod: ", paymentMethod)
-
-        try {
-            const res_stripe = await stripeAPI.createCustomerPaymentProfile(userPaymentInfo);
-            console.log("res_stripe: ", res_stripe)
-        } catch(e) {
-            console.log("Error with creating account stripe frontend ", e)
-        }
-        
-
+        setIsLoading(true);
         e.preventDefault();
         parseFullAddress()
-        setIsLoading(true);
 
-        let base64_image_string = String(userImage).replace('data:image/jpeg;base64,', '')
-        const res = await rekognition_api.searchUser(base64_image_string);
+        try {
 
-        console.log('Search User: ', res)
-        console.log("Face: ", res.data.FaceMatches.length)
+            const card = elements.getElement(CardElement);
+            const res_source = await stripe.createSource(card)
+            const source = res_source["source"]["id"]
+            let userPaymentInfo = {source, email}
 
-        if(res.status == 1 && res.data.FaceMatches.length > 0) {
-            console.log("CreateAccount Route 1")
-            setIsOnlyOneFaceDetected(false);
-            setIsUserAlreadyExists(true);
-        } 
-        else if (res.status == 1 && res.data.FaceMatches.length == 0) {
-            handleShowTwilioModal(true)
-            
-        } else if (res.status == 0){
-            console.log("CreateAccount Route 3")
+            const res_stripe = await stripeAPI.createCustomerPaymentProfile(userPaymentInfo);
+            setStripeCustomerId(res_stripe['data']['id'])
+        } catch(e) {
+
+            console.log("Error processing Customer Payment Info")
+            setSomethingWentWrong(true)
+        }
+        
+        try {
+            let base64_image_string = String(userImage).replace('data:image/jpeg;base64,', '')
+            const res = await rekognition_api.searchUser(base64_image_string);
+
+            console.log('Search User: ', res)
+            console.log("Face: ", res.data.FaceMatches.length)
+
+            if(res.status == 1 && res.data.FaceMatches.length > 0) {
+                console.log("CreateAccount Route 1")
+                setIsOnlyOneFaceDetected(false);
+                setIsUserAlreadyExists(true);
+            } 
+            else if (res.status == 1 && res.data.FaceMatches.length == 0) {
+                handleShowTwilioModal(true)
+            } 
+        } catch(e) {
+            console.log("Error while implementing AWS Rekognition SearchUser API")
             setSomethingWentWrong(true)
         }
 
@@ -165,10 +172,9 @@ const CreateAccountModal = (props) => {
 
     const finishHandleCreateAccount = async () => {
 
-        let base64_image_string = String(userImage).replace('data:image/jpeg;base64,', '')
-        const res_addFace = await rekognition_api.addFacialFeature(base64_image_string);
-
-        if(res_addFace.status == 1) {
+        try {
+            let base64_image_string = String(userImage).replace('data:image/jpeg;base64,', '')
+            const res_addFace = await rekognition_api.addFacialFeature(base64_image_string);
 
             const faceRecords = res_addFace["data"]["FaceRecords"]; 
             const faceId = faceRecords[0]["Face"]["FaceId"];
@@ -178,6 +184,7 @@ const CreateAccountModal = (props) => {
             
             const userInfo = TEMPLATE.USER_INFO_TEMPLATE;
             userInfo.faceId = faceId;
+            userInfo.stripeCustomerId = stripeCustomerId
             userInfo.sex = gender;
             userInfo.age = age;
             userInfo.firstName = firstName;
@@ -185,30 +192,25 @@ const CreateAccountModal = (props) => {
             userInfo.email = email;
             userInfo.phoneNumber = phoneNumber;
             userInfo.street = streetAddress;
-            userInfo.city = city;
-            userInfo.state = state;
-            userInfo.country = country
+            userInfo.city = city?.trim();
+            userInfo.state = state?.trim();
+            userInfo.country = country?.trim();
 
             console.log("Person Data: ", userInfo)
 
-            // const res_mongo = await mongoAPI.addUserInfo(userInfo)
-            // console.log("CreateAccount Mongo Response: ", res_mongo)
+            const res_mongo = await mongoAPI.addUserInfo(userInfo)
+            console.log("CreateAccount Mongo Response: ", res_mongo)
 
-            // if(res_mongo.status) {
+            userActivity.logInUser({userInfo})
+            
 
-            // } else {
-            //     setSomethingWentWrong(true)
-            // }
-
-
-        } else if (res_addFace.status == 0) {
+        } catch(e) {
+            console.log("Error while Indexing Face with AWS Rekognition API or Adding data to MongoDB: ", e)
             setSomethingWentWrong(true)
         }
     }
 
     useEffect(() => {
-        // console.log(userImage)
-
         if(userImage) {
             onCaptureUserImage()
         } else {
@@ -219,15 +221,7 @@ const CreateAccountModal = (props) => {
     }, [userImage])
 
     useEffect(() => {
-
-        if(isCodeConfirmed) {
-            finishHandleCreateAccount();
-        }
-
-    }, [isCodeConfirmed])
-
-    useEffect(() => {
-        if(firstName.length < 1 || lastName.length < 1 || phoneNumber.length != 10 || email.length < 1 || userImage == null || multipleFacesDetected || !isOnlyOneFaceDetected )
+        if(firstName.length < 1 || lastName.length < 1 || phoneNumber.length != 10 || email.length < 1 || userImage == null || multipleFacesDetected || !isOnlyOneFaceDetected || isNoFaceDetected )
             setDisableSubmitButton(true)
         else
             setDisableSubmitButton(false)
@@ -236,9 +230,6 @@ const CreateAccountModal = (props) => {
 
   return (
     <div>
-        {someWentWrong? <Alert variant="danger">Something went Wrong! Please press cancel and restart</Alert> : null}
-        {isUserAlreadyExists? <Alert variant="danger">Looks like you already have an account. Please log in!</Alert> : null}
-
         <Modal
         show={props.show} 
         onHide={props.handleClose} 
@@ -249,25 +240,21 @@ const CreateAccountModal = (props) => {
         fullscreen='lg-down'
         
         >
-            <Modal.Header>
+            <Modal.Header closeButton>
                 <Modal.Title>Create Account</Modal.Title>
                 {multipleFacesDetected? 
 
                 <> <Alert variant="warning">Oops! Only one face is allowed per image! Please retake image!</Alert> </> 
                 
                 :
-                isOnlyOneFaceDetected? 
-                <> <Alert variant='success'>Perfect shot!</Alert></> : null}
+                isOnlyOneFaceDetected? <Alert variant='success'>Perfect shot!</Alert>: null}
                 {isLoading? <Spinner animation="grow" /> : null}
+                {isNoFaceDetected? <Alert variant='danger'>No Face Detected!</Alert>: null}
+                {someWentWrong? <Alert variant="danger">Something went Wrong! Review you input or restart!</Alert> : null}
+                {isUserAlreadyExists? <Alert variant="danger">Looks like you already have an account. Please log in!</Alert> : null}
 
-                {isUserAlreadyExists?
-                <><Alert variant='danger'>Hmm looks like you already have a profile! Please Log in</Alert></>
-                :
-                <></>
-                }
-
-                <TwilioModal show={showTwilioModal} handleClose={handleCloseTwilioModal} phoneNumber={phoneNumber} setIsCodeConfirmed={setIsCodeConfirmed} 
-                onCancelButton={onCancelButton} finishHandleCreateAccount={finishHandleCreateAccount}/>
+                <TwilioModal show={showTwilioModal} handleClose={handleCloseTwilioModal} phoneNumber={phoneNumber} 
+                onCancelButton={onCancelButton} finishProcess={finishHandleCreateAccount}/>
             </Modal.Header>
 
             <Modal.Body>
@@ -275,17 +262,17 @@ const CreateAccountModal = (props) => {
 
                     <Form.Group className="mb-3" controlId="firstName">
                         <Form.Label>First Name</Form.Label>
-                        <Form.Control type="text" value={firstName} onChange={e => setFirstName(e.target.value)}/>
+                        <Form.Control type="text" value={firstName} onChange={e => setFirstName(e.target.value)} required/>
                     </Form.Group>
 
                     <Form.Group className="mb-3" controlId="lastName">
                         <Form.Label>Last Name</Form.Label>
-                        <Form.Control type="text" value={lastName} onChange={e => setLastName(e.target.value)}/>
+                        <Form.Control type="text" value={lastName} onChange={e => setLastName(e.target.value)} required/>
                     </Form.Group>
 
                     <Form.Group className="mb-3" controlId="email">
                         <Form.Label>Email</Form.Label>
-                        <Form.Control type="email" value={email} onChange={e => setEmail(e.target.value)}/>
+                        <Form.Control type="email" value={email} onChange={e => {setEmail(e.target.value); validateEmail()}} required/>
                     </Form.Group>
 
                     <Form.Group className="mb-3" controlId="phoneNumber">
@@ -297,7 +284,7 @@ const CreateAccountModal = (props) => {
                               event.preventDefault();
                             }
                           }}
-                        
+                        required
                         />
                     </Form.Group>
 
@@ -315,7 +302,7 @@ const CreateAccountModal = (props) => {
                     <Form.Group className="mb-3" controlId="payment">
                         <Form.Label>Card Payment Details</Form.Label>
 
-                        <CardElement />
+                        <CardElement required/>
             
                     </Form.Group>
             </Modal.Body>

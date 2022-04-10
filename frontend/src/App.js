@@ -2,6 +2,7 @@ import React, {useState, useContext} from "react";
 import HomePage from "./Components/HomePage";
 import { Routes, Route, BrowserRouter as Router } from 'react-router-dom';
 import { UserContext } from './utils/context';
+import HomePageController from "./Components/HomePageController";
 
 const App = () => {
 
@@ -14,7 +15,7 @@ const App = () => {
     <UserContext.Provider value={[context, setContext]}>
       <Router>
           <Routes>
-            <Route exact path="/" element={<HomePage />} />
+            <Route exact path="/" element={<HomePageController />} />
           </Routes>
       </Router>
     </UserContext.Provider>

@@ -33,10 +33,8 @@ const TwilioModal = (props) => {
     }
 
     const onSubmitCodeButton = () => {
-        console.log("Code Twilio Confirmed!!", {code, randomCode})
         if(code == randomCode) {
-            props.setIsCodeConfirmed(true)
-            props.finishHandleCreateAccount()
+            props.finishProcess()
             console.log("Code Twilio Confirmed!!")
         } else {
             setIsWrongCode(true)
@@ -58,7 +56,8 @@ const TwilioModal = (props) => {
     }
 
     useEffect(() => {
-        sendMessageToUser()
+        if(props.show)
+            sendMessageToUser()
     }, [props.show])
 
   return (
@@ -74,7 +73,7 @@ const TwilioModal = (props) => {
         >
             <Modal.Header>
                 <Modal.Title>Phone Verification</Modal.Title>
-                {isWrongCode? <Alert variant="danger">Wrong Code! Please retry</Alert> : null}
+                {isWrongCode? <Alert centered={true} variant="danger">Wrong Code! Please retry</Alert> : null}
             </Modal.Header>
 
             <Modal.Body>

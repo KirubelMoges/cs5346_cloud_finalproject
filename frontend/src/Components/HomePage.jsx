@@ -33,7 +33,7 @@ const HomePage = () => {
           <CreateAccount show={createAccountModal} handleClose={handleCloseCreateAccountModal}/>
 	    	</Elements>
         
-        
+        <LogInModal show={loginModal} handleClose={handleCloseLoginModal} />
     </div>
   )
 }
