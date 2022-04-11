@@ -3,13 +3,14 @@ import { Spinner } from 'react-bootstrap';
 import HomePage from './HomePage'
 import { UserActivity } from '../Api/UserActivity';
 import ShoppingPage from './ShoppingPage'
+import { UserContext } from '../utils/context';
 
 const HomePageController = () => {
     const [loggedIn, setLoggedIn] = useState(false);
+    const [userContext, setUserContext] = useContext(UserContext);
     useEffect(() => {
         const userActivity = new UserActivity();
         const isLoggedIn = userActivity.isUserLoggedIn();
-        console.log("Is logged in? ", isLoggedIn)
         isLoggedIn? setLoggedIn(true) : setLoggedIn(false)
       });
 

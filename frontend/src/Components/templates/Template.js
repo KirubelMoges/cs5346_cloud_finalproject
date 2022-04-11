@@ -21,7 +21,7 @@ export const PRODUCT_INFO_TEMPLATE = {
 }
 
 export const PRODUCT_PURCHASE_TEMPLATE = {
-    purchaseId: String,
+    purchasedById: String,
     productId: String,
     quantity: Number,
     purchaseDate: Date,

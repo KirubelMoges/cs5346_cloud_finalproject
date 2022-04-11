@@ -1,6 +1,6 @@
 
 const AWS = require('aws-sdk');
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 require('dotenv').config();
@@ -258,7 +258,7 @@ module.exports = function routes(app, logger) {
          
          });
 
-      /**
+   /**
    * 
    * @param {faceId} - String faceId
    * @returns {0, 1} - 0: Failed to get info. 1: UserInfo Found!
@@ -292,6 +292,103 @@ module.exports = function routes(app, logger) {
          });
 
       /**
+   * 
+   * @param {None} - 
+   * @returns {0, 1} - 0: Failed to get info. 1: UserInfo Found!
+   */
+       app.get('/getAllUserDocuments', async (req, res) => {
+
+         try {
+            await mongoClient.connect()
+
+            const database = mongoClient.db(MONGO_DATABASE_NAME);
+
+            const data = await database.collection(USER_COLLECTION_MONGODB).find().toArray()
+
+            res.status(200).json({
+               status: 1,
+               data
+               });
+
+            } catch(err) {
+               res.status(400).json({
+                  status: 0, 
+                  err
+                  });
+            } finally {
+
+               await mongoClient.close()
+            }
+         
+         });
+
+   /**
+   * 
+   * @param {documentId} - 
+   * @returns {0, 1} - 0: Failed to get info. 1: UserInfo Found!
+   */
+          app.get('/getUserById', async (req, res) => {
+
+            let id = req.body['id']
+            console.log("id is: ", id)
+            try {
+               await mongoClient.connect()
+   
+               const database = mongoClient.db(MONGO_DATABASE_NAME);
+   
+               const data = await database.collection(USER_COLLECTION_MONGODB).findOne({"_id": ObjectId(id)})
+   
+               res.status(200).json({
+                  status: 1,
+                  data
+                  });
+   
+               } catch(err) {
+                  res.status(400).json({
+                     status: 0, 
+                     err
+                     });
+               } finally {
+   
+                  await mongoClient.close()
+               }
+            
+            });
+
+      /**
+   * 
+   * @param {documentId} - 
+   * @returns {0, 1} - 0: Failed to get info. 1: Done
+   */
+       app.delete('/deleteUserById', async (req, res) => {
+
+         let id = req.body['id']
+         try {
+            await mongoClient.connect()
+
+            const database = mongoClient.db(MONGO_DATABASE_NAME);
+
+            const data1 = await database.collection(USER_COLLECTION_MONGODB).findOneAndDelete({"_id": ObjectId(id)})
+            const data2 = await database.collection(PURCHASE_HISTORY_COLLECTION_MONGODB).deleteMany({"_id": ObjectId(id)})
+            const data = {data1, data2}
+            res.status(200).json({
+               status: 1,
+               data
+               });
+
+            } catch(err) {
+               res.status(400).json({
+                  status: 0, 
+                  err
+                  });
+            } finally {
+
+               await mongoClient.close()
+            }
+         
+         });
+
+   /**
    * 
    * @param {productInfo} - templated content about product info
    * @returns {0, 1} - 0: Failed to product info . 1: product info successfully stored in mongodb

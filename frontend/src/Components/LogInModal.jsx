@@ -22,8 +22,7 @@ const LogInModal = (props) => {
   const [someWentWrong, setSomethingWentWrong] = useState(false)
   const [disableLoginButton, setDisableLoginButton] = useState(true)
   const [phoneNumber, setPhoneNumber] = useState('')
-
-  var email = ''
+  const [docId, setDocId] = useState(null)
 
   const navigate = useNavigate();
 
@@ -45,9 +44,9 @@ const LogInModal = (props) => {
     setIsLoading(false)
     setDisableLoginButton(true)
     setIsNoAccountFound(false)
-    email = ''
     setPhoneNumber(null)
     setShowTwilioModal(false)
+    setDocId(null)
   }
 
   const onCaptureUserImage = async () => {
@@ -84,18 +83,14 @@ const LogInModal = (props) => {
       console.log("Face: ", res.data.FaceMatches.length)
 
       if(res.status == 1 && res.data.FaceMatches.length > 0) {
-          console.log("LogIn Route 1")
           setIsOnlyOneFaceDetected(false);
 
           const faceId = res["data"]["FaceMatches"][0]["Face"]["FaceId"]
-          console.log("Login FaceId: ",faceId)
 
           const res_mongo = await mongoAPI.getUserInfo(faceId)
-          console.log("Login Get Userinfo: ", res_mongo['data'])
-
-          email = res_mongo['data']['email']
 
           setPhoneNumber(res_mongo['data']['phoneNumber'])
+          setDocId(res_mongo['data']['_id'])
 
           setShowTwilioModal(true)
           
@@ -113,9 +108,8 @@ const LogInModal = (props) => {
   }
 
   const finishLoginProcess = () => {
-    userActivity.logInUser({email})
+    userActivity.logInUser(docId)
     retakeImageButtonClicked()
-    window.location.reload();
   }
 
   const onCancelButton = () => {

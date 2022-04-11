@@ -21,6 +21,11 @@ import axios from 'axios';
       return data
     }
 
+    async getUserInfoById(id) {
+      const {data} = await axios.get(this.url + '/getUserById', JSON.stringify({id}), this.config);
+      return data
+    }
+
     async addProductInfo(productInfo) {
       const {data} = await axios.post(this.url + '/addProductInfo', JSON.stringify({productInfo}), this.config);
       return data

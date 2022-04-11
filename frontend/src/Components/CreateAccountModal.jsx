@@ -171,7 +171,7 @@ const CreateAccountModal = (props) => {
     }
 
     const finishHandleCreateAccount = async () => {
-
+        setIsLoading(true)
         try {
             let base64_image_string = String(userImage).replace('data:image/jpeg;base64,', '')
             const res_addFace = await rekognition_api.addFacialFeature(base64_image_string);
@@ -201,13 +201,18 @@ const CreateAccountModal = (props) => {
             const res_mongo = await mongoAPI.addUserInfo(userInfo)
             console.log("CreateAccount Mongo Response: ", res_mongo)
 
-            userActivity.logInUser({userInfo})
-            
+            if(res_mongo['data']['acknowledged']) {
+                const mgid = res_mongo['data']['insertedId']
+                userActivity.logInUser({mgid})
+            } else {
+                throw "Error Creating MongoDB Document"
+            }
 
         } catch(e) {
             console.log("Error while Indexing Face with AWS Rekognition API or Adding data to MongoDB: ", e)
             setSomethingWentWrong(true)
         }
+        setIsLoading(false)
     }
 
     useEffect(() => {

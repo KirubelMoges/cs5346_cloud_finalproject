@@ -8,6 +8,7 @@ const TwilioModal = (props) => {
     const [isWrongCode, setIsWrongCode] = useState(false)
     const [disableSubmitButton, setDisableSubmitButton] = useState(true)
     const [randomCode, setRandomCode] = useState(0)
+    const [isLoading, setIsLoading] = useState(false)
 
     var randomGeneratedCode = '';
     var messageToUser = '';
@@ -33,12 +34,14 @@ const TwilioModal = (props) => {
     }
 
     const onSubmitCodeButton = () => {
+        setIsLoading(true)
         if(code == randomCode) {
             props.finishProcess()
             console.log("Code Twilio Confirmed!!")
         } else {
             setIsWrongCode(true)
         }
+        setIsLoading(false)
     }
 
     useEffect(() => {
@@ -74,6 +77,7 @@ const TwilioModal = (props) => {
             <Modal.Header>
                 <Modal.Title>Phone Verification</Modal.Title>
                 {isWrongCode? <Alert centered={true} variant="danger">Wrong Code! Please retry</Alert> : null}
+                {isLoading? <Spinner animation="grow" /> : null}
             </Modal.Header>
 
             <Modal.Body>
