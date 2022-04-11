@@ -17,3 +17,10 @@
 	margin-left: 15px;
 	border-top: 1px solid #819efc;
 }
+
+.CardGroup {
+	display: flex;
+	flex-direction: row;
+	margin-top: 40%;
+
+}

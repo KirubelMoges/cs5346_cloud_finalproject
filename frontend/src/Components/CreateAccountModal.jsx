@@ -157,17 +157,6 @@ const CreateAccountModal = (props) => {
         }
 
         setIsLoading(false);
-
-        // if(res) setIsLoading(false);
-
-        // if (!res.success) {
-        //     setErrors(res);
-        //   } else {
-        //     setUserContext(userRepository.currentUser());
-        //     history.push('/');
-
-        //     session
-        //   }
     }
 
     const finishHandleCreateAccount = async () => {
@@ -203,7 +192,7 @@ const CreateAccountModal = (props) => {
 
             if(res_mongo['data']['acknowledged']) {
                 const mgid = res_mongo['data']['insertedId']
-                userActivity.logInUser({mgid})
+                userActivity.logInUser(mgid)
             } else {
                 throw "Error Creating MongoDB Document"
             }
