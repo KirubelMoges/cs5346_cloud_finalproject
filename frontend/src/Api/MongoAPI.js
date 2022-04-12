@@ -22,7 +22,7 @@ import axios from 'axios';
     }
 
     async getUserInfoById(id) {
-      const {data} = await axios.get(this.url + '/getUserById', JSON.stringify({id}), this.config);
+      const {data} = await axios.post(this.url + '/getUserById', JSON.stringify({id}), this.config);
       return data
     }
 

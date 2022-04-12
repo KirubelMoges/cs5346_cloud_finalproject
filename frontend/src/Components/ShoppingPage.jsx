@@ -2,12 +2,20 @@ import React, {useState, useEffect} from 'react'
 import LoggedInNavBar from './LoggedInNavBar'
 import { Button, Modal, Form, FormGroup, Spinner, Alert, Table, Card, CardGroup  } from 'react-bootstrap';
 import ProductSearchWebModal from './ProductSearchWebModal';
+import ProductSearchVoiceModal from './ProductSearchVoiceModal';
+import { UserActivity } from '../Api/UserActivity';
+const userActivity = new UserActivity()
 const ShoppingPage = () => {
 
   const [showProductSearchWebModal, setShowProductSearchWebModal] = useState(false)
+  const [showProductSearchVoiceModal, setShowProductSearchVoiceModal] = useState(false)
+  const [userInfo, setUserInfo] = useState(null)
 
   const handleCloseProductSearchWebModal = () => setShowProductSearchWebModal(false)
   const handleShowProductSearchWebModal = () => setShowProductSearchWebModal(true)
+
+  const handleCloseVoiceModal = () => setShowProductSearchVoiceModal(false)
+  const handleShowVoiceModal = () => setShowProductSearchVoiceModal(true)
 
   var cartItems = [{
     title: 'Product 1',
@@ -66,19 +74,29 @@ const ShoppingPage = () => {
     setShopppingItems(cartCopy)
   }
 
+  const gatherUserInfo = async () => {
+    await userActivity.getUserInfo().then((res) => setUserInfo(res))
+  }
+
+  useEffect(async () => {
+    if(!userInfo)
+      await gatherUserInfo()
+  })
+
   return (
     <div>
-        <LoggedInNavBar />
+        <LoggedInNavBar name={userInfo? userInfo['firstName'] + " " + userInfo['lastName']: null} />
         <ProductSearchWebModal show={showProductSearchWebModal} handleClose={handleCloseProductSearchWebModal}/>
+        <ProductSearchVoiceModal show={showProductSearchVoiceModal} handleClose={handleCloseVoiceModal} />
 
-        <div style={{justifyContent: 'center', marginLeft: '38%', marginTop: '3%'}}>
+        <div style={{display:'flex',justifyContent: 'center', marginTop: '5%'}}>
           <Button style={{margin: '1rem'}} onClick={handleShowProductSearchWebModal}> Vision-based Product Search </Button>
-          <Button style={{margin: '1rem'}}> Voice-based Product Search </Button>
+          <Button style={{margin: '1rem'}} onClick={handleShowVoiceModal}> Voice-based Product Search </Button>
         </div>
 
 
         <div>
-            <h2 style={{textAlign: 'center', marginTop: '8%'}}>Your Cart</h2>
+            <h2 style={{textAlign: 'center', marginTop: '5%'}}>Your Cart</h2>
             {shoppingItems? 
               <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap' ,marginTop: '3%', marginLeft: '18%', 
                     marginRight: '15%', justifyContent: 'center', border: '1px solid', marginBottom: '5%'}}>

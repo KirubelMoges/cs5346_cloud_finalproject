@@ -2,6 +2,8 @@
 const AWS = require('aws-sdk');
 const { MongoClient, ObjectId } = require("mongodb");
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const amazonProduct = require('amazon-product-api');
+const language = require('@google-cloud/language');
 
 require('dotenv').config();
 
@@ -18,7 +20,12 @@ module.exports = function routes(app, logger) {
    const system_twilio_phoneNumber = process.env.TWILIO_PHONE_NUMBER; // Your Twilio Phone Number
 
 
-   const client = require('twilio')(twilio_accountSid, twilio_authToken);
+   const twilioClient = require('twilio')(twilio_accountSid, twilio_authToken);
+
+   // const googleNLPClient = new language.LanguageServiceClient({
+   //    process.env.GOOGLE_CLIENT_ID,
+   //    process.env.GOOGLE_CLIENt_SECRET
+   // });
 
 
     const rekognition_collection_id = 'mustang-go-image-collection'
@@ -28,6 +35,11 @@ module.exports = function routes(app, logger) {
     const mongoClient = new MongoClient(mongodb_uri);
 
     AWS.config.update({accessKeyId: process.env.aws_access_key_id, secretAccessKey: process.env.aws_secret_access_key, region: 'us-east-1'});
+
+    const amazonProductAPI = amazonProduct.createClient({
+      awsId: process.env.aws_access_key_id,
+      awsSecret: process.env.aws_secret_access_key,
+    });
 
     const rekognition = new AWS.Rekognition();
 
@@ -194,6 +206,38 @@ module.exports = function routes(app, logger) {
                });
          });
 
+      /**
+   * 
+   * @param {productImage} userImage- base64 encoded image
+   * @returns {0, 1} 
+   */
+       app.post('/detectLabels', async (req, res) => {
+         
+         let userImage = req.body['productImage'];
+
+         const imageBuffer = Buffer.from(decodeURIComponent(userImage), 'base64');
+
+         let params = {
+            "Image": { 
+               "Bytes": imageBuffer,
+            }
+         }
+            rekognition.detectLabels(params, function(err, data) {
+               if (err) {
+                  res.status(400).json({
+                     status: 0, 
+                     err
+                     });
+               }
+               else {
+                  res.status(200).json({
+                     status: 1,
+                     data
+                     });
+               }
+               });
+         });
+
    
    /**
    * 
@@ -327,7 +371,7 @@ module.exports = function routes(app, logger) {
    * @param {documentId} - 
    * @returns {0, 1} - 0: Failed to get info. 1: UserInfo Found!
    */
-          app.get('/getUserById', async (req, res) => {
+          app.post('/getUserById', async (req, res) => {
 
             let id = req.body['id']
             console.log("id is: ", id)
@@ -469,7 +513,7 @@ module.exports = function routes(app, logger) {
          console.log("Twilio Message: ", messageContent)
 
          try {
-            client.messages
+            twilioClient.messages
             .create(messageContent)
             .then(
                message => {console.log(message.sid)
@@ -548,6 +592,32 @@ module.exports = function routes(app, logger) {
                   err
                   });
             }
-      
       });
+
+      /**
+   * 
+   * @param {keyWord} - message
+   * @returns {0, 1} - 0: Failed . 1: Success
+   */
+       app.post('/productSearch', async (req, res) => {
+
+         let keyWord = req.body["keyWord"]
+
+         try {
+            console.log("Amazon Product Search API ", keyWord)
+            const data = await amazonProductAPI.itemSearch(keyWord)
+
+            res.status(200).json({
+               status: 1,
+               data
+               });
+
+         } catch(err) {
+            console.log("Sending bad request ", err)
+            res.status(400).json({
+               status: 0, 
+               err
+               });
+         }
+   });
 }

@@ -9,12 +9,18 @@ export class UserActivity {
 
 
     async getUserInfo() {
-      const {mgid: id} = localStorage.getItem("mgid");
+      const mgid = localStorage.getItem("mgid");
+      let id = mgid
       if(id) {
-        const user = await this.mongoAPI.getUserInfoById(id)
-        if(user['data']) {
-          return JSON.stringify(user['data'])
+        try{
+          const user = await this.mongoAPI.getUserInfoById(id)
+          if(user['data']) {
+            return user['data']
+          }
+        } catch(e) {
+          return {}
         }
+        return {}
       }
       return {}
     }

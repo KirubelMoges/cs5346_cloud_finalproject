@@ -4,7 +4,7 @@ import { Button, Form, Nav, NavDropdown, Offcanvas, Container, FormControl, Navb
 
 const userActivity = new UserActivity();
 
-const LoggedInNavBar = () => {
+const LoggedInNavBar = (props) => {
     const onLogOut = () => {
         userActivity.logOutUser()
         window.location.reload();
@@ -14,6 +14,7 @@ const LoggedInNavBar = () => {
         <Navbar bg="primary" variant="dark" expand={false}>
             <Container fluid>
                 <Navbar.Brand href="#">Mustang-Go Shopping Services</Navbar.Brand>
+                {props.name? <Navbar.Brand>Hi {props.name}!</Navbar.Brand>:null}
                     <Navbar.Toggle aria-controls="offcanvasNavbar" />
                         <Navbar.Offcanvas
                         id="offcanvasNavbar"
