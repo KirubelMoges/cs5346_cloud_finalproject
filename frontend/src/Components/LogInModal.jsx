@@ -87,7 +87,16 @@ const LogInModal = (props) => {
 
           const faceId = res["data"]["FaceMatches"][0]["Face"]["FaceId"]
 
-          const res_mongo = await mongoAPI.getUserInfo(faceId)
+          console.log("FaceId in Login Modal is: ", faceId)
+          const res_mongo = await mongoAPI.getUserInfoByFaceId(faceId)
+
+          if(!res_mongo['data']) {
+            //If faceId is in collection, but userInfo is not in mongdDB
+            setIsNoAccountFound(true)
+            const res_aws = await rekognition_api.deleteUserByFaceId(faceId)
+            setIsLoading(false)
+            return
+          }
 
           setPhoneNumber(res_mongo['data']['phoneNumber'])
           setDocId(res_mongo['data']['_id'])
@@ -108,6 +117,7 @@ const LogInModal = (props) => {
   }
 
   const finishLoginProcess = () => {
+
     userActivity.logInUser(docId)
     retakeImageButtonClicked()
   }

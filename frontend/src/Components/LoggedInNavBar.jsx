@@ -7,8 +7,13 @@ const userActivity = new UserActivity();
 const LoggedInNavBar = (props) => {
     const onLogOut = () => {
         userActivity.logOutUser()
-        window.location.reload();
     }
+
+    const onDeleteAccount = () => {
+        userActivity.deleteUserData()
+    }
+
+
   return (
     <div>
         <Navbar bg="primary" variant="dark" expand={false}>
@@ -33,7 +38,7 @@ const LoggedInNavBar = (props) => {
                                     <Button variant="warning" onClick={onLogOut}>Log Out</Button>
                                 </Nav.Link>
                                 <Nav.Link>
-                                    <Button variant="danger">Delete Account And Data</Button>
+                                    <Button variant="danger" onClick={onDeleteAccount}>Delete Account And Data</Button>
                                 </Nav.Link>
                             </Nav>
                     </Offcanvas.Body>

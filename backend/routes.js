@@ -4,6 +4,7 @@ const { MongoClient, ObjectId } = require("mongodb");
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const amazonProduct = require('amazon-product-api');
 const language = require('@google-cloud/language');
+const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
 
 require('dotenv').config();
 
@@ -13,7 +14,8 @@ module.exports = function routes(app, logger) {
    const USER_COLLECTION_MONGODB = "users";
    const PRODUCT_COLLECTION_MONGODB = "products";
    const PURCHASE_HISTORY_COLLECTION_MONGODB = "purchase-history";
-   const MONGO_DATABASE_NAME = "mustangGoMongoDB"
+   const CART_COLLECTION_MONGODB = "cart"
+   const MONGO_DATABASE_NAME = "mustangGoMongoDB";
 
    const twilio_accountSid = process.env.TWILIO_ACCOUNT_SID; // Your Account SID from www.twilio.com/console
    const twilio_authToken = process.env.TWILIO_AUTH_TOKEN;   // Your Auth Token from www.twilio.com/console
@@ -21,6 +23,12 @@ module.exports = function routes(app, logger) {
 
 
    const twilioClient = require('twilio')(twilio_accountSid, twilio_authToken);
+
+   const parent = 'projects/my-project'; // Project for which to manage secrets.
+   const secretId = 'foo'; // Secret ID.
+   const payload = 'hello world!' // String source data.
+
+   const secretManager = new SecretManagerServiceClient();
 
    // const googleNLPClient = new language.LanguageServiceClient({
    //    process.env.GOOGLE_CLIENT_ID,
@@ -150,22 +158,26 @@ module.exports = function routes(app, logger) {
    * @param {faceId} faceId- base64 encoded image of user
    * @returns {0, 1} - 0: User feature deletion failed or invalid format. 1: User face feature deleted
    */
-      app.delete('/deleteUserFeature', (req, res) => {
-         let faceId = req.body['faceId']
+      app.delete('/deleteUserFeatureByFaceId', (req, res) => {
+         let faceId = req.param('faceId')
 
-         var delete_user_feature_params = {
+         console.log("Backend: faceId: ", faceId)
+
+         let params = {
                "CollectionId": rekognition_collection_id,
                "FaceIds": [ faceId ]
             };
-            rekognition.deleteFaces(delete_user_feature_params, function(err, data) {
+            console.log("Rekognition Delete Face params: ", params)
+            rekognition.deleteFaces(params, function(err, data) {
                if (err) {
+                  console.log("AWS Error deleteing")
                   res.status(400).json({
                      status: 0,
                      err
                      });
                }
                else {
-                  console.log(data);
+                  console.log("Success deleting: ", data);
                   res.status(200).json({
                      status: 1,
                      data
@@ -208,7 +220,7 @@ module.exports = function routes(app, logger) {
 
       /**
    * 
-   * @param {productImage} userImage- base64 encoded image
+   * @param {productImage} productImage- base64 encoded image
    * @returns {0, 1} 
    */
        app.post('/detectLabels', async (req, res) => {
@@ -307,23 +319,33 @@ module.exports = function routes(app, logger) {
    * @param {faceId} - String faceId
    * @returns {0, 1} - 0: Failed to get info. 1: UserInfo Found!
    */
-       app.get('/getUserInfo', async (req, res) => {
+       app.get('/getUserInfoByFaceId', async (req, res) => {
 
-         let faceId = req.body['faceId']
+         let faceId = req.param('faceId')
+
+         if(!faceId) {
+            res.status(400).json({
+               status: 0, 
+               err: {"message":"Empty Parameter, faceId"}
+               });
+         }
+         console.log("Backend: getUserInfo: ", {faceId})
 
          try {
             await mongoClient.connect()
 
             const database = mongoClient.db(MONGO_DATABASE_NAME);
 
-            const data = await database.collection(USER_COLLECTION_MONGODB).findOne(faceId)
+            const data = await database.collection(USER_COLLECTION_MONGODB).findOne({faceId})
 
+            console.log("Success /getUserInfoByFaceId: ", {data})
             res.status(200).json({
                status: 1,
                data
                });
 
             } catch(err) {
+               console.log("Fail /getUserInfoByFaceId: ", {err})
                res.status(400).json({
                   status: 0, 
                   err
@@ -371,9 +393,9 @@ module.exports = function routes(app, logger) {
    * @param {documentId} - 
    * @returns {0, 1} - 0: Failed to get info. 1: UserInfo Found!
    */
-          app.post('/getUserById', async (req, res) => {
+          app.get('/getUserById', async (req, res) => {
 
-            let id = req.body['id']
+            let id = req.param('id')
             console.log("id is: ", id)
             try {
                await mongoClient.connect()
@@ -406,7 +428,8 @@ module.exports = function routes(app, logger) {
    */
        app.delete('/deleteUserById', async (req, res) => {
 
-         let id = req.body['id']
+         let id = req.param('id')
+         console.log("DeleteUserById: ", {id})
          try {
             await mongoClient.connect()
 

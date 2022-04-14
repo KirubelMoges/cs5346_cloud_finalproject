@@ -31,8 +31,9 @@ export default class AWS_Rekognition_API_Repository {
         return data
     }
 
-    async deleteUser(userImage) {
-        const {data} = await axios.delete(this.url + '/deleteuser', JSON.stringify({userImage}), this.config);
+    async deleteUserByFaceId(faceId) {
+        console.log("AWS API deleteUserByFaceId: ",{faceId})
+        const {data} = await axios.delete(this.url + `/deleteUserFeatureByFaceId?faceId=${faceId}`, this.config)
         return data
     }
 };

@@ -1,6 +1,8 @@
 import MongoAPI from "./MongoAPI";
+import AWS_Rekognition_API_Repository from './Aws_rekognition_api'
 export class UserActivity {
   mongoAPI = new MongoAPI()
+  awsAPI = new AWS_Rekognition_API_Repository()
     currentUser() {
         const mgid = localStorage.getItem("mgid");
         if (!mgid) return {};
@@ -34,8 +36,23 @@ export class UserActivity {
         window.location.reload()
     }
 
-    logInUser(userId) {
-        localStorage.setItem("mgid", userId)
+    logInUser(documentId) {
+        localStorage.setItem("mgid", documentId)
         window.location.reload()
+    }
+
+    async deleteUserData() {
+      const mgid = localStorage.getItem("mgid");
+      let id = mgid
+
+      try{
+        const data1 = await this.mongoAPI.getUserInfoById(id)
+        const res_mongo = await this.mongoAPI.deleteUserInfo(id)
+        const res_aws = await this.awsAPI.deleteUserByFaceId(data1['data']['faceId'])
+        this.logOutUser()
+      } catch(e) {
+        console.log("Error Deleting User Account in UserActivity.js")
+      }
+
     }
 }

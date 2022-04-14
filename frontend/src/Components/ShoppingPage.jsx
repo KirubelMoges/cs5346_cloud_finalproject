@@ -85,7 +85,7 @@ const ShoppingPage = () => {
 
   return (
     <div>
-        <LoggedInNavBar name={userInfo? userInfo['firstName'] + " " + userInfo['lastName']: null} />
+        <LoggedInNavBar name={userInfo? userInfo['firstName'] + " " + userInfo['lastName'] + ", ~" + userInfo['age']: null} />
         <ProductSearchWebModal show={showProductSearchWebModal} handleClose={handleCloseProductSearchWebModal}/>
         <ProductSearchVoiceModal show={showProductSearchVoiceModal} handleClose={handleCloseVoiceModal} />
 

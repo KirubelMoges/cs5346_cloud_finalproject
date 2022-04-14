@@ -117,6 +117,7 @@ const CreateAccountModal = (props) => {
       }
 
     const handleCreateAccount = async (e) => {
+        setSomethingWentWrong(false)
         setIsLoading(true);
         e.preventDefault();
         parseFullAddress()
@@ -134,6 +135,8 @@ const CreateAccountModal = (props) => {
 
             console.log("Error processing Customer Payment Info")
             setSomethingWentWrong(true)
+            setIsLoading(false)
+            return
         }
         
         try {
@@ -154,6 +157,8 @@ const CreateAccountModal = (props) => {
         } catch(e) {
             console.log("Error while implementing AWS Rekognition SearchUser API")
             setSomethingWentWrong(true)
+            setIsLoading(false)
+            return
         }
 
         setIsLoading(false);

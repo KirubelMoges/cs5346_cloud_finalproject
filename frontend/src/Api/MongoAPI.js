@@ -16,13 +16,13 @@ import axios from 'axios';
       return data
     }
 
-    async getUserInfo(faceId) {
-      const {data} = await axios.get(this.url + '/getUserInfo', JSON.stringify({faceId}), this.config);
+    async getUserInfoByFaceId(faceId) {
+      const {data} = await axios.get(this.url + `/getUserInfoByFaceId?faceId=${faceId}`, this.config);
       return data
     }
 
     async getUserInfoById(id) {
-      const {data} = await axios.post(this.url + '/getUserById', JSON.stringify({id}), this.config);
+      const {data} = await axios.get(this.url + `/getUserById?id=${id}`, this.config);
       return data
     }
 
@@ -33,6 +33,11 @@ import axios from 'axios';
 
     async addPurchaseInfo(purchaseInfo) {
       const {data} = await axios.post(this.url + '/addPurchaseInfo', JSON.stringify({purchaseInfo}), this.config);
+      return data
+    }
+
+    async deleteUserInfo(id) {
+      const {data} = await axios.delete(this.url + `/deleteUserById?id=${id}`, this.config);
       return data
     }
 
