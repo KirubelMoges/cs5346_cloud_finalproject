@@ -2,7 +2,7 @@ import React, {useState, useEffect, useContext} from 'react'
 import { Button, Modal, Form, FormGroup, Spinner, Alert } from 'react-bootstrap';
 import validator from 'validator'
 import WebCamVerificationScreen from './WebCamVerificationScreen';
-import AWS_Rekognition_API_Repository from '../Api/Aws_rekognition_api'
+import AWS_API from '../Api/AWS_API'
 import * as TEMPLATE from './templates/Template'
 import TwilioModal from './TwilioModal';
 import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
@@ -14,7 +14,7 @@ import { UserActivity } from '../Api/UserActivity';
 import { UserContext } from '../utils/context';
 
 
-const rekognition_api = new AWS_Rekognition_API_Repository();
+const rekognition_api = new AWS_API();
 const mongoAPI = new MongoAPI()
 const stripeAPI = new StripeAPI()
 const userActivity = new UserActivity();

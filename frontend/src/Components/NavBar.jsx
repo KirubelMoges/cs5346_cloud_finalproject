@@ -5,9 +5,9 @@ import { Button, Modal, Nav, Container, Navbar } from 'react-bootstrap';
 const NavBar = () => {
   return (
     <>
-        <Navbar bg="primary" variant="dark">
-            <Container>
-                <Navbar.Brand href="" style={{textAlign: 'center', alignContent: 'center'}}>Mustang-Go Services</Navbar.Brand>
+        <Navbar bg="primary" variant="dark" expand={false}>
+            <Container fluid>
+                <Navbar.Brand href="#">Mustang-Go Shopping Services</Navbar.Brand>
             </Container>
         </Navbar>
     </>

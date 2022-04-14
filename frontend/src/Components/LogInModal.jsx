@@ -2,12 +2,12 @@ import React, {useState, useEffect} from 'react';
 import { Button, Modal, Alert, Spinner } from 'react-bootstrap';
 import WebCamVerificationScreen from './WebCamVerificationScreen';
 import {UserActivity} from '../Api/UserActivity'
-import AWS_Rekognition_API_Repository from '../Api/Aws_rekognition_api'
+import AWS_API from '../Api/AWS_API'
 import MongoAPI from '../Api/MongoAPI';
 import TwilioModal from './TwilioModal';
 import {useNavigate} from 'react-router-dom';
 
-const rekognition_api = new AWS_Rekognition_API_Repository();
+const rekognition_api = new AWS_API();
 const userActivity = new UserActivity();
 const mongoAPI = new MongoAPI()
 

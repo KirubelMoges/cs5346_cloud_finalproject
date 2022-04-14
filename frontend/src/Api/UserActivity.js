@@ -1,8 +1,8 @@
 import MongoAPI from "./MongoAPI";
-import AWS_Rekognition_API_Repository from './Aws_rekognition_api'
+import AWS_API from './AWS_API'
 export class UserActivity {
   mongoAPI = new MongoAPI()
-  awsAPI = new AWS_Rekognition_API_Repository()
+  awsAPI = new AWS_API()
     currentUser() {
         const mgid = localStorage.getItem("mgid");
         if (!mgid) return {};

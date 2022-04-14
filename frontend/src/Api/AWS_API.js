@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export default class AWS_Rekognition_API_Repository {
+export default class AWS_API {
 
     url = 'http://localhost:8000'
 
@@ -32,8 +32,12 @@ export default class AWS_Rekognition_API_Repository {
     }
 
     async deleteUserByFaceId(faceId) {
-        console.log("AWS API deleteUserByFaceId: ",{faceId})
         const {data} = await axios.delete(this.url + `/deleteUserFeatureByFaceId?faceId=${faceId}`, this.config)
+        return data
+    }
+
+    async processSpeech(sentence) {
+        const {data} = await axios.post(this.url + "/processSpeechAWS", JSON.stringify({sentence}), this.config)
         return data
     }
 };

@@ -5,7 +5,6 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const amazonProduct = require('amazon-product-api');
 const language = require('@google-cloud/language');
 const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
-
 require('dotenv').config();
 
 
@@ -23,6 +22,7 @@ module.exports = function routes(app, logger) {
 
 
    const twilioClient = require('twilio')(twilio_accountSid, twilio_authToken);
+   const gcpNLPClient = new language.LanguageServiceClient();
 
    const parent = 'projects/my-project'; // Project for which to manage secrets.
    const secretId = 'foo'; // Secret ID.
@@ -50,6 +50,7 @@ module.exports = function routes(app, logger) {
     });
 
     const rekognition = new AWS.Rekognition();
+    const awsComprehend = new AWS.Comprehend()
 
     app.get('/', (req, res) => {
         res.status(200).send('Go to 0.0.0.0:3000.');
@@ -643,4 +644,86 @@ module.exports = function routes(app, logger) {
                });
          }
    });
+
+
+   /**
+   * 
+   * @param {sentence} - message
+   * @returns {0, 1} - 0: Failed . 1: Success
+   */
+          app.post('/processSpeechGCP', async (req, res) => {
+
+            let sentence = req.body["sentence"]
+
+            const document = {
+               content: sentence,
+               type: 'PLAIN_TEXT',
+             };
+
+            try {
+
+               const data = await gcpNLPClient.analyzeEntities({document});
+
+               res.status(200).json({
+                  status: 1,
+                  data
+                  });
+   
+            } catch(err) {
+               console.log("Sending bad request ", err)
+               res.status(400).json({
+                  status: 0, 
+                  err
+                  });
+            }
+      });
+
+
+
+   /**
+   * 
+   * @param {sentence} - message
+   * @returns {0, 1} - 0: Failed . 1: Success
+   */
+       app.post('/processSpeechAWS', async (req, res) => {
+
+         let sentence = req.body["sentence"]
+
+          let params = {
+            "LanguageCode": "en",  /* required */
+            "Text": sentence /* required */
+          }
+
+         try {
+
+            awsComprehend.detectKeyPhrases(params, function(err, data) {
+               if (err) {
+                  res.status(400).json({
+                     status: 0, 
+                     err
+                     });
+               }
+               else {
+                  res.status(200).json({
+                     status: 1,
+                     data
+                     });
+               }
+               });
+
+         } catch(err) {
+            res.status(400).json({
+               status: 0, 
+               err
+               });
+         }
+   });
+
+
+
+
+
+
+
+
 }

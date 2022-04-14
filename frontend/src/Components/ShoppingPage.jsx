@@ -97,6 +97,14 @@ const ShoppingPage = () => {
 
         <div>
             <h2 style={{textAlign: 'center', marginTop: '5%'}}>Your Cart</h2>
+            {shoppingItems?.length > 0? 
+              <div style={{display: 'flex', justifyContent: 'flex-end', marginRight: '15%'}}>
+                <Button variant='success'>Finish And Pay</Button>
+              </div>
+            :
+            null
+            }
+            
             {shoppingItems? 
               <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap' ,marginTop: '3%', marginLeft: '18%', 
                     marginRight: '15%', justifyContent: 'center', border: '1px solid', marginBottom: '5%'}}>
