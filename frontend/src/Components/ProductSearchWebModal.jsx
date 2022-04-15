@@ -3,10 +3,11 @@ import { Button, Modal, Form, FormGroup, Spinner, Alert } from 'react-bootstrap'
 import WebCamVerificationScreen from './WebCamVerificationScreen';
 import AWS_API from '../Api/AWS_API';
 import GCP_API from '../Api/GCP_API'
-
+import PexelsAPI from '../Api/PexelsAPI'
 
 const awsAPI = new AWS_API()
 const gcpAPI = new GCP_API()
+const pexelsAPI = new PexelsAPI()
 
 const ProductSearchWebModal = (props) => {
   const [productImage, setProductImage] = useState(null)
@@ -52,6 +53,30 @@ const ProductSearchWebModal = (props) => {
       console.log("Filtered Entities: ", filteredEntity)
 
       setGcpConsumerGoods(filteredEntity.join(', '))
+
+      if(filteredEntity.length > 0) {
+
+        try {
+            let card = {}
+            let term = filteredEntity[0]
+            const res_pexels = await pexelsAPI.searchForImages(term)
+
+            let imgSrc = res_pexels['data']['photos'][0]['src']['original']
+            let description = res_pexels['data']['photos'][0]['alt']
+            let title = term 
+            let price = Math.round(Math.random() * 400)
+
+            card.description = description;
+            card.title = title;
+            card.price = price;
+            card.imgSrc = imgSrc;
+            
+            props.addToCart(card)
+
+        } catch(e) {
+            console.log("Error with UnSplashAPI in VoiceModal")
+        }
+    }
 
 
     } catch(e) {

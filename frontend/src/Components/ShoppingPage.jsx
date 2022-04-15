@@ -66,12 +66,21 @@ const ShoppingPage = () => {
     img: 'holder.js/100px180'
   }]
 
-  const [shoppingItems, setShopppingItems] = useState(cartItems)
+  const [shoppingCart, setShopppingCart] = useState([])
 
   const onRemoveItemButton = (index) => {
-    let cartCopy = [...shoppingItems];
+    let cartCopy = [...shoppingCart];
     cartCopy.splice(index, 1)
-    setShopppingItems(cartCopy)
+    setShopppingCart(cartCopy)
+  }
+
+  const addToCart = (item) => {
+    let copyCart = [];
+    if(shoppingCart) copyCart = [...shoppingCart]
+    console.log("Current Shopping Cart is: ", shoppingCart)
+    console.log("Current Item is: ", item)
+    copyCart.push(item)
+    setShopppingCart(copyCart)
   }
 
   const gatherUserInfo = async () => {
@@ -86,8 +95,8 @@ const ShoppingPage = () => {
   return (
     <div>
         <LoggedInNavBar name={userInfo? userInfo['firstName'] + " " + userInfo['lastName'] + ", ~" + userInfo['age']: null} />
-        <ProductSearchWebModal show={showProductSearchWebModal} handleClose={handleCloseProductSearchWebModal}/>
-        <ProductSearchVoiceModal show={showProductSearchVoiceModal} handleClose={handleCloseVoiceModal} />
+        <ProductSearchWebModal show={showProductSearchWebModal} handleClose={handleCloseProductSearchWebModal} addToCart={addToCart}/>
+        <ProductSearchVoiceModal show={showProductSearchVoiceModal} handleClose={handleCloseVoiceModal} addToCart={addToCart}/>
 
         <div style={{display:'flex',justifyContent: 'center', marginTop: '5%'}}>
           <Button style={{margin: '1rem'}} onClick={handleShowProductSearchWebModal}> Vision-based Product Search </Button>
@@ -97,7 +106,7 @@ const ShoppingPage = () => {
 
         <div>
             <h2 style={{textAlign: 'center', marginTop: '5%'}}>Your Cart</h2>
-            {shoppingItems?.length > 0? 
+            {shoppingCart?.length > 0? 
               <div style={{display: 'flex', justifyContent: 'flex-end', marginRight: '15%'}}>
                 <Button variant='success'>Finish And Pay</Button>
               </div>
@@ -105,17 +114,20 @@ const ShoppingPage = () => {
             null
             }
             
-            {shoppingItems? 
+            {shoppingCart? 
               <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap' ,marginTop: '3%', marginLeft: '18%', 
-                    marginRight: '15%', justifyContent: 'center', border: '1px solid', marginBottom: '5%'}}>
-              {shoppingItems.map((product, index) => {
+                    marginRight: '15%', justifyContent: 'flex-start', border: '1px solid', marginBottom: '5%'}}>
+              {shoppingCart.map((product, index) => {
                   return (
                     <Card key={index} style={{width: '18rem', margin: '1rem'}}>
-                    <Card.Img variant="top" src="holder.js/100px180" />
+                    <Card.Img variant="top" src={product.imgSrc} />
                     <Card.Body>
                       <Card.Title>{product.title}</Card.Title>
                       <Card.Text>
                         {product.description}
+                      </Card.Text>
+                      <Card.Text>
+                        ${product.price}
                       </Card.Text>
                       <Button variant="danger" onClick={() => onRemoveItemButton(index)}>Remove</Button>
                     </Card.Body>

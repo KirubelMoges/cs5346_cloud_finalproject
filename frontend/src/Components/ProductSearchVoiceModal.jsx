@@ -3,9 +3,12 @@ import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognitio
 import { Button, Modal, Form, FormGroup, Spinner, Alert, Table, Card, CardGroup,  } from 'react-bootstrap';
 import AWS_API from '../Api/AWS_API'
 import GCP_API from '../Api/GCP_API'
+import PexelsAPI from '../Api/PexelsAPI'
 
 const awsAPI = new AWS_API()
 const gcpAPI = new GCP_API()
+const pexelsAPI = new PexelsAPI()
+
 
 const ProductSearchVoiceModal = (props) => {
 
@@ -42,6 +45,8 @@ const ProductSearchVoiceModal = (props) => {
       const resetValues = () => {
           resetTranscript()
           setConsumerProducts([])
+          setGcpConsumerGoods('')
+          setAwsKeyPhrases('')
       }
 
       const onStartButton = () => {
@@ -87,6 +92,34 @@ const ProductSearchVoiceModal = (props) => {
                     voiceSearchResult.push(filteredEntity)
                 }
             setConsumerProducts(voiceSearchResult.join(', '))
+
+            if(voiceSearchResult) {
+                voiceSearchResult.forEach( async (term) => {
+                    if(term.length > 0) {
+
+                        try {
+                            let card = {}
+                            const res_pexels = await pexelsAPI.searchForImages(term)
+
+                            let imgSrc = res_pexels['data']['photos'][0]['src']['original']
+                            let description = res_pexels['data']['photos'][0]['alt']
+                            let title = term 
+                            let price = Math.round(Math.random() * 400)
+
+                            card.description = description;
+                            card.title = title;
+                            card.price = price;
+                            card.imgSrc = imgSrc;
+                            
+                            props.addToCart(card)
+
+                        } catch(e) {
+                            console.log("Error with UnSplashAPI in VoiceModal")
+                        }
+                    }
+                })
+            }
+            
         } catch(e) {
             console.error("Error in ProductSearchVoiceModal while using AWS ProcessSpeech(): ", e)
         }

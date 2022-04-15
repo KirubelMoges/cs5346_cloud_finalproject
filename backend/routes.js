@@ -5,6 +5,8 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const amazonProduct = require('amazon-product-api');
 const language = require('@google-cloud/language');
 const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
+const {OperationHelper} = require('apac');
+const axios = require('axios').default;
 require('dotenv').config();
 
 
@@ -721,9 +723,44 @@ module.exports = function routes(app, logger) {
 
 
 
+      /**
+   * 
+   * @param {query} - message
+   * @returns {0, 1} - 0: Failed . 1: Success
+   */
+       app.get('/searchPexels', async (req, res) => {
 
+         let query = req.param('query')
+         console.log("Pexels query: ", query)
 
+         let config = {
+            headers: {
+              'Authorization': `${process.env.REACT_APP_PEXELS_API_KEY}`,
+              'Access-Control-Allow-Origin': '*',
+              'Content-Type': 'application/json',
+            },
+          };
 
+         try {
+
+            console.log("Pexels API is: ", process.env.REACT_APP_PEXELS_API_KEY)
+            const {data} = await axios.get(`https://api.pexels.com/v1/search?query=${query}&per_page=1`, config);
+
+            console.log("Data is: ", data)
+
+            res.status(200).json({
+               status: 1,
+               data
+               });
+
+         } catch(err) {
+            console.log("Pexels Error is: ", err)
+            res.status(400).json({
+               status: 0, 
+               err
+               });
+         }
+   });
 
 
 }

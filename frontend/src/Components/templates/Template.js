@@ -27,4 +27,11 @@ export const PRODUCT_PURCHASE_TEMPLATE = {
     purchaseDate: Date,
 }
 
+export const PRODUCT_CARD_TEMPLATE = {
+    imgSrc: String,
+    title: String,
+    price: String, 
+    description: String,
+}
+
 export const PURCHASE_TEMPLATE = Array[PRODUCT_PURCHASE_TEMPLATE]
