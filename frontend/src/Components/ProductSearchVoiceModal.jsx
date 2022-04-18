@@ -13,10 +13,16 @@ const pexelsAPI = new PexelsAPI()
 const ProductSearchVoiceModal = (props) => {
 
     const [processedTranscript, setProcessedTranscript] = useState('')
+    const [userProductDescription, setUserProductDescription] = useState('')
     const [consumerProducts, setConsumerProducts] = useState([])
     const [awsKeyPhrases, setAwsKeyPhrases] = useState('')
     const [gcpConsumerGoods, setGcpConsumerGoods] = useState('')
-    const CONSUMER_GOOD = "CONSUMER_GOOD"
+    const CONSUMER_GOOD = "CONSUMER_GOOD";
+    const PURCHASE_TYPE = "VOICE";
+
+    const addText = () => {
+        onTranscriptAvailable(userProductDescription)
+    }
 
     const {
         transcript,
@@ -54,7 +60,7 @@ const ProductSearchVoiceModal = (props) => {
         SpeechRecognition.startListening();
     }
 
-      const onTranscriptAvailable = async () => {
+      const onTranscriptAvailable = async (transcript) => {
         
         try {
             const res_aws = await awsAPI.processSpeech(transcript)
@@ -110,11 +116,12 @@ const ProductSearchVoiceModal = (props) => {
                             card.title = title;
                             card.price = price;
                             card.imgSrc = imgSrc;
+                            card.purchaseType = PURCHASE_TYPE
                             
                             props.addToCart(card)
 
                         } catch(e) {
-                            console.log("Error with UnSplashAPI in VoiceModal")
+                            console.log("Error with PexelsAPI in VoiceModal")
                         }
                     }
                 })
@@ -127,7 +134,7 @@ const ProductSearchVoiceModal = (props) => {
 
       useEffect(() => {
         if(transcript && !listening) {
-            onTranscriptAvailable()
+            onTranscriptAvailable(transcript)
         }
       }, [transcript, listening])
 
@@ -162,10 +169,17 @@ const ProductSearchVoiceModal = (props) => {
                                 <Button variant='success' style={{margin: '1rem'}} onClick={onStartButton}>Start</Button>
                                 <Button variant='danger' style={{margin: '1rem'}} onClick={SpeechRecognition.stopListening}>Stop</Button>
                                 <Button  style={{margin: '1rem'}} onClick={resetValues}>Reset</Button>
+                                <Button variant='warning'  style={{margin: '1rem'}} onClick={addText}>Add Text</Button>
                             </div>
+
+
+                            <Form.Group className="mb-3" controlId="transcript">
+                                <Form.Label>Write Product Description:</Form.Label>
+                                <Form.Control as="textarea" rows={3} value={userProductDescription} onChange={e => setUserProductDescription(e.target.value)}/>
+                            </Form.Group>
                             
                             <Form.Group className="mb-3" controlId="transcript">
-                                <Form.Label>Transacript</Form.Label>
+                                <Form.Label>Voice Transacript</Form.Label>
                                 <Form.Control as="textarea" rows={3} placeholder={transcript} readOnly/>
                             </Form.Group>
 

@@ -32,9 +32,6 @@ const LoggedInNavBar = (props) => {
                         <Offcanvas.Body>
                             <Nav className="justify-content-end flex-grow-1 pe-3">
                                 <Nav.Link>
-                                    <Button variant="success">Purchase History</Button>
-                                </Nav.Link>
-                                <Nav.Link>
                                     <Button variant="warning" onClick={onLogOut}>Log Out</Button>
                                 </Nav.Link>
                                 <Nav.Link>

@@ -20,7 +20,6 @@ const TwilioModal = (props) => {
             randomGeneratedCode = Math.floor(Math.random() * 10000) + 1000;
             setRandomCode(randomGeneratedCode)
             messageToUser = `Mustang-Go Services: You authentication code is ${randomGeneratedCode}`
-            console.log("T Modal Message: ", messageToUser)
             const twilioApi = new TwilioAPI()
             const content = {
                 messageContent: {
@@ -37,7 +36,6 @@ const TwilioModal = (props) => {
         setIsLoading(true)
         if(code == randomCode) {
             props.finishProcess()
-            console.log("Code Twilio Confirmed!!")
         } else {
             setIsWrongCode(true)
         }

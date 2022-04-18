@@ -11,7 +11,7 @@ import axios from 'axios';
       };
 
     async sendMessage(messageContent) {
-        const {data} = await axios.post(this.url + '/twilioMessage', JSON.stringify({messageContent}), this.config);
+        const data = await axios.post(this.url + '/twilioMessage', JSON.stringify({messageContent}), this.config);
         return data
     }
   }

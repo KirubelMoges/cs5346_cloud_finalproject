@@ -85,7 +85,7 @@ module.exports = function routes(app, logger) {
                 });
             }
             else {
-               console.log(data);
+               //console.log(data);
                res.status(200).json({
                   status: 1,
                   data
@@ -536,8 +536,6 @@ module.exports = function routes(app, logger) {
          const {messageContent} = req.body['messageContent']
          messageContent.from = system_twilio_phoneNumber
 
-         console.log("Twilio Message: ", messageContent)
-
          try {
             twilioClient.messages
             .create(messageContent)
@@ -550,6 +548,7 @@ module.exports = function routes(app, logger) {
                
                })
          } catch(err) {
+            console.log("Error Sending Twilio Message: ", err)
             res.status(400).json({
                status: 0, 
                err
@@ -565,16 +564,21 @@ module.exports = function routes(app, logger) {
    */
          app.post('/payment', async (req, res) => {
 
-            let { amount, id } = req.body
+            let content = req.body['content']
+            let amount = content.amount * 100
+            let customer = content.stripeCustomerId
 
             try {
-               const data = await stripe.paymentIntents.create({
-                  amount,
+               const data = await stripe.charges.create({
+                  amount: amount,
                   currency: "USD",
+                  customer: customer,
                   description: "Mustang-Go Services",
-                  payment_method: id,
-                  confirm: true
-               })
+                  source: "tok_mastercard"
+               }, {
+                  apiKey: process.env.STRIPE_SECRET_KEY
+                })
+
 
                res.status(200).json({
                   status: 1,
@@ -601,7 +605,6 @@ module.exports = function routes(app, logger) {
             let { source, email } = req.body["userPaymentInfo"]
 
             try {
-               console.log("Creating account stripe: ", {source, email})
                const data = await stripe.customers.create({source, email},{
                   apiKey: process.env.STRIPE_SECRET_KEY
                 });
@@ -723,7 +726,7 @@ module.exports = function routes(app, logger) {
 
 
 
-      /**
+   /**
    * 
    * @param {query} - message
    * @returns {0, 1} - 0: Failed . 1: Success
@@ -731,7 +734,6 @@ module.exports = function routes(app, logger) {
        app.get('/searchPexels', async (req, res) => {
 
          let query = req.param('query')
-         console.log("Pexels query: ", query)
 
          let config = {
             headers: {
@@ -742,12 +744,7 @@ module.exports = function routes(app, logger) {
           };
 
          try {
-
-            console.log("Pexels API is: ", process.env.REACT_APP_PEXELS_API_KEY)
             const {data} = await axios.get(`https://api.pexels.com/v1/search?query=${query}&per_page=1`, config);
-
-            console.log("Data is: ", data)
-
             res.status(200).json({
                status: 1,
                data

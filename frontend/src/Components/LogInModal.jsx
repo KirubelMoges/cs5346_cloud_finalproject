@@ -79,15 +79,11 @@ const LogInModal = (props) => {
       let base64_image_string = String(userImage).replace('data:image/jpeg;base64,', '')
       const res = await rekognition_api.searchUser(base64_image_string);
 
-      console.log('Search User LogIn Modal: ', res)
-      console.log("Face: ", res.data.FaceMatches.length)
-
       if(res.status == 1 && res.data.FaceMatches.length > 0) {
           setIsOnlyOneFaceDetected(false);
 
           const faceId = res["data"]["FaceMatches"][0]["Face"]["FaceId"]
 
-          console.log("FaceId in Login Modal is: ", faceId)
           const res_mongo = await mongoAPI.getUserInfoByFaceId(faceId)
 
           if(!res_mongo['data']) {

@@ -4,11 +4,15 @@ import { Button, Modal, Form, FormGroup, Spinner, Alert, Table, Card, CardGroup 
 import ProductSearchWebModal from './ProductSearchWebModal';
 import ProductSearchVoiceModal from './ProductSearchVoiceModal';
 import { UserActivity } from '../Api/UserActivity';
+import ReceiptModal from './ReceiptModal';
 const userActivity = new UserActivity()
 const ShoppingPage = () => {
 
   const [showProductSearchWebModal, setShowProductSearchWebModal] = useState(false)
   const [showProductSearchVoiceModal, setShowProductSearchVoiceModal] = useState(false)
+  const [showReceiptModal, setShowReceiptModal] = useState(false)
+  const [subTotal, setSubTotal] = useState(0)
+
   const [userInfo, setUserInfo] = useState(null)
 
   const handleCloseProductSearchWebModal = () => setShowProductSearchWebModal(false)
@@ -17,74 +21,36 @@ const ShoppingPage = () => {
   const handleCloseVoiceModal = () => setShowProductSearchVoiceModal(false)
   const handleShowVoiceModal = () => setShowProductSearchVoiceModal(true)
 
-  var cartItems = [{
-    title: 'Product 1',
-    description: 'Some quick example text to build on the card title and make up the bulk ofthe cards content.',
-    Price: '$15',
-    img: 'holder.js/100px180'
-  },
-  {
-    title: 'Product 2',
-    description: 'Some quick example text to build on the card title and make up the bulk ofthe cards content.',
-    Price: '$15',
-    img: 'holder.js/100px180'
-  },
-  {
-    title: 'Product 3',
-    description: 'Some quick example text to build on the card title and make up the bulk ofthe cards content.',
-    Price: '$15',
-    img: 'holder.js/100px180'
-  },
-  {
-    title: 'Product 4',
-    description: 'Some quick example text to build on the card title and make up the bulk ofthe cards content.',
-    Price: '$15',
-    img: 'holder.js/100px180'
-  },
-  {
-    title: 'Product 5',
-    description: 'Some quick example text to build on the card title and make up the bulk ofthe cards content.',
-    Price: '$15',
-    img: 'holder.js/100px180'
-  },
-  {
-    title: 'Product 6',
-    description: 'Some quick example text to build on the card title and make up the bulk ofthe cards content.',
-    Price: '$15',
-    img: 'holder.js/100px180'
-  },
-  {
-    title: 'Product 7',
-    description: 'Some quick example text to build on the card title and make up the bulk ofthe cards content.',
-    Price: '$15',
-    img: 'holder.js/100px180'
-  },
-  {
-    title: 'Product 8',
-    description: 'Some quick example text to build on the card title and make up the bulk ofthe cards content.',
-    Price: '$15',
-    img: 'holder.js/100px180'
-  }]
-
+  const handleCloseReceiptModal = () => setShowReceiptModal(false)
+  const handleShowReceiptModal = () => setShowReceiptModal(true)
+ 
   const [shoppingCart, setShopppingCart] = useState([])
 
   const onRemoveItemButton = (index) => {
     let cartCopy = [...shoppingCart];
+    setSubTotal(subTotal - cartCopy[index].price)
     cartCopy.splice(index, 1)
     setShopppingCart(cartCopy)
+  }
+
+  const clearShoppingCart = () => {
+    setShopppingCart([])
   }
 
   const addToCart = (item) => {
     let copyCart = [];
     if(shoppingCart) copyCart = [...shoppingCart]
-    console.log("Current Shopping Cart is: ", shoppingCart)
-    console.log("Current Item is: ", item)
+    setSubTotal(subTotal + item.price)
     copyCart.push(item)
     setShopppingCart(copyCart)
   }
 
   const gatherUserInfo = async () => {
     await userActivity.getUserInfo().then((res) => setUserInfo(res))
+  }
+
+  const onFinishAndPayButton = () => {
+    setShowReceiptModal(true)
   }
 
   useEffect(async () => {
@@ -97,26 +63,37 @@ const ShoppingPage = () => {
         <LoggedInNavBar name={userInfo? userInfo['firstName'] + " " + userInfo['lastName'] + ", ~" + userInfo['age']: null} />
         <ProductSearchWebModal show={showProductSearchWebModal} handleClose={handleCloseProductSearchWebModal} addToCart={addToCart}/>
         <ProductSearchVoiceModal show={showProductSearchVoiceModal} handleClose={handleCloseVoiceModal} addToCart={addToCart}/>
+        <ReceiptModal show={showReceiptModal} handleClose={handleCloseReceiptModal} userInfo={userInfo} 
+        shoppingCart={shoppingCart} subTotal={subTotal} clearShoppingCart={clearShoppingCart}/>
 
         <div style={{display:'flex',justifyContent: 'center', marginTop: '5%'}}>
           <Button style={{margin: '1rem'}} onClick={handleShowProductSearchWebModal}> Vision-based Product Search </Button>
-          <Button style={{margin: '1rem'}} onClick={handleShowVoiceModal}> Voice-based Product Search </Button>
+          <Button style={{margin: '1rem'}} onClick={handleShowVoiceModal}> Voice/Text-based Product Search </Button>
         </div>
 
 
         <div>
             <h2 style={{textAlign: 'center', marginTop: '5%'}}>Your Cart</h2>
             {shoppingCart?.length > 0? 
-              <div style={{display: 'flex', justifyContent: 'flex-end', marginRight: '15%'}}>
-                <Button variant='success'>Finish And Pay</Button>
+            <div style={{display:'flex', justifyContent: 'space-between', marginLeft: '21%', marginRight: '26%', marginTop: '2%'}}>
+              <div>
+                <Button variant='warning' disabled={true}>Sub-Total: ${subTotal}</Button>
               </div>
+              <div>
+                <Button variant='danger' onClick={clearShoppingCart}>Clear Cart</Button>
+              </div>
+              <div>
+                <Button variant='success' onClick={onFinishAndPayButton}>Finish And Pay</Button>
+              </div>
+            </div>
+              
             :
             null
             }
             
             {shoppingCart? 
-              <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap' ,marginTop: '3%', marginLeft: '18%', 
-                    marginRight: '15%', justifyContent: 'flex-start', border: '1px solid', marginBottom: '5%'}}>
+              <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap' ,marginTop: '1%', marginLeft: '20%', 
+                    marginRight: '25%', justifyContent: 'flex-start', border: '1px solid', marginBottom: '5%'}}>
               {shoppingCart.map((product, index) => {
                   return (
                     <Card key={index} style={{width: '18rem', margin: '1rem'}}>
@@ -147,7 +124,3 @@ const ShoppingPage = () => {
 }
 
 export default ShoppingPage
-
-/*
-
-              */
