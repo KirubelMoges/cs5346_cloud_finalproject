@@ -2,7 +2,6 @@ const cors = require('cors');
 const express = require('express');
 const bodyParser = require('body-parser');
 const { log, ExpressAPILogMiddleware } = require('@rama41222/node-logger');
-const Host = require('./cloud')
 
 const config = {
     name: 'mustang-go-app',
