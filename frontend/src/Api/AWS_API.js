@@ -1,8 +1,9 @@
 import axios from 'axios';
+import * as Host from '../cloud'
 
 export default class AWS_API {
 
-    url = 'http://localhost:8000'
+    url = Host.isHostedOnCloud? Host.hostedIpAddress : 'http://localhost:8000'
 
     config = {
       headers: {
