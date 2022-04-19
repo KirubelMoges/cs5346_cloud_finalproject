@@ -2,8 +2,6 @@ version: '3'
 
 services:
   backend:
-    env_file:
-        "./backend/.env"
     build:
       context: ./backend
       dockerfile: ./Dockerfile
@@ -11,8 +9,6 @@ services:
     ports:
       - "8080:8080"
   frontend:
-    env_file: 
-        "./frontend/.env"
     build:
       context: ./frontend
       dockerfile: ./Dockerfile
