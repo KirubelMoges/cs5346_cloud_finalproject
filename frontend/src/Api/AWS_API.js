@@ -17,7 +17,7 @@ export default class AWS_API {
         return data
     }
 
-    async detectFaces(userImage) {
+    async detectFaces(userImage) { 
         const {data} = await axios.post(this.url + '/detectfaces', JSON.stringify({userImage}), this.config);
         return data
     }
