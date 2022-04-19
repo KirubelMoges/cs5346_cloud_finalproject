@@ -26,20 +26,6 @@ module.exports = function routes(app, logger) {
    const twilioClient = require('twilio')(twilio_accountSid, twilio_authToken);
    const gcpNLPClient = new language.LanguageServiceClient();
 
-   const parent = 'projects/my-project'; // Project for which to manage secrets.
-   const secretId = 'foo'; // Secret ID.
-   const payload = 'hello world!' // String source data.
-
-   const secretManager = new SecretManagerServiceClient();
-
-   console.log("Account ID Twilio: ", process.env.TWILIO_ACCOUNT_SID)
-
-   // const googleNLPClient = new language.LanguageServiceClient({
-   //    process.env.GOOGLE_CLIENT_ID,
-   //    process.env.GOOGLE_CLIENt_SECRET
-   // });
-
-
     const rekognition_collection_id = 'mustang-go-image-collection'
 
     const mongodb_uri = `mongodb+srv://admin:${process.env.mongodb_password}@mustanggomongodb.bjcmo.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
