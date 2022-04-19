@@ -15,6 +15,7 @@ jobs:
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN}}
           TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER}}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY}}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }} 
           REACT_APP_PEXELS_API_KEY: ${{ secrets.REACT_APP_PEXELS_API_KEY}}
           
 
@@ -43,5 +44,7 @@ jobs:
             --set-env-vars=TWILIO_PHONE_NUMBER=$TWILIO_PHONE_NUMBER
             --set-env-vars=STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY
             --set-env-vars=REACT_APP_PEXELS_API_KEY=$REACT_APP_PEXELS_API_KEY
+            --set-env-vars=GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS
+            
 
             
