@@ -20,17 +20,12 @@ jobs:
       with:
         credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
-    - name: Configure Docker
-      run: gcloud auth configure-docker --quiet
-
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Build Docker image
-      run: docker build ./backend -t $IMAGE_NAME
-
-    - name: Push Docker image
-      run: docker push $IMAGE_NAME
-
-    - name: Deploy Docker image
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v0'
+      
+    - name: 'Submit to cloud build'
+      run: |
+        cd backend
+        gcloud builds submit --tag $IMAGE_NAME
+    - name: 'Deploy to Cloud Run'
       run: gcloud run deploy ${{ secrets.GCP_PROJECT }} --image $IMAGE_NAME --region us-central1 --platform managed
