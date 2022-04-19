@@ -18,8 +18,9 @@ jobs:
         GCP_PROJECT : '${{ secrets.GCP_PROJECT }}'
         GCP_APPLICATION: '${{ secrets.GCP_APPLICATION }}'
         GCP_EMAIL: '${{ secrets.EMAIL }}'
+        GCP_TEST: 'Works?'
       run: |
-        echo $GCP_CREDENTIALS
+        echo $GCP_TEST
         
         
     - name: Verification
