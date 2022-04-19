@@ -13,7 +13,6 @@ jobs:
       uses: actions/checkout@master
       
     - name: Verification
-    - id: 'auth'
       uses: 'google-github-actions/auth@v0'
 
     - name: 'Set up Cloud SDK'
