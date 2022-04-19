@@ -531,9 +531,7 @@ module.exports = function routes(app, logger) {
    */
          app.post('/twilioMessage', async (req, res) => {
 
-         
-
-         const {messageContent} = req.body['messageContent']
+         const {messageContent} = req.body
          messageContent.from = system_twilio_phoneNumber
 
          try {

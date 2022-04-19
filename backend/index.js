@@ -5,7 +5,7 @@ const { log, ExpressAPILogMiddleware } = require('@rama41222/node-logger');
 
 const config = {
     name: 'mustang-go-app',
-    port: 8000,
+    port: 8080,
     host: '0.0.0.0',
   };
 
