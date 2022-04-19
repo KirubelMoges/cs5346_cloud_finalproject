@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
           IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APP_NAME_BACKEND }}
-          aws_access_key_id: ${{ secrets.secrets.aws_access_key_id}}
+          aws_access_key_id: ${{ secrets.aws_access_key_id}}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key}}
           mongodb_password: ${{ secrets.mongodb_password}}
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID}}
