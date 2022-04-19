@@ -19,7 +19,7 @@ jobs:
           UNSPLASH_SECRET_KEY: ${{secrets.UNSPLASH_SECRET_KEY}}
           REACT_APP_PEXELS_API_KEY: ${{secrets.REACT_APP_PEXELS_API_KEY}}
 
-    steps:
+   steps:
     - uses: 'actions/checkout@v3'
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
@@ -27,20 +27,12 @@ jobs:
       with:
         credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
-    - name: Configure Docker
-      run: gcloud auth configure-docker --quiet
-
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Build Docker image
-      run: docker build ./frontend -t $IMAGE_NAME
-
-    - name: Test Docker image
-      run: docker run $IMAGE_NAME sh -c "go test -v"
-
-    - name: Push Docker image
-      run: docker push $IMAGE_NAME
-
-    - name: Deploy Docker image
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v0'
+      
+    - name: 'Submit to cloud build'
+      run: |
+        cd frontend
+        gcloud builds submit --tag $IMAGE_NAME
+    - name: 'Deploy to Cloud Run'
       run: gcloud run deploy ${{ secrets.GCP_PROJECT }} --image $IMAGE_NAME --region us-central1 --platform managed
