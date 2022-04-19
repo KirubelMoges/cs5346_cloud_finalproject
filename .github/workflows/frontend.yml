@@ -12,6 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
           IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APP_NAME_FRONTEND }}
+          GOOGLE_MAPS_API_KEY: ${{secrets.GOOGLE_MAPS_API_KEY}}
+          REACT_APP_STRIPE_PUBLISHABLE_KEY: ${{secrets.REACT_APP_STRIPE_PUBLISHABLE_KEY}}
+          SERP_API_KEY: ${{secrets.SERP_API_KEY}}
+          REACT_APP_UNSPLASH_ACCESS_KEY: ${{secrets.REACT_APP_UNSPLASH_ACCESS_KEY}}
+          UNSPLASH_SECRET_KEY: ${{secrets.UNSPLASH_SECRET_KEY}}
+          REACT_APP_PEXELS_API_KEY: ${{secrets.REACT_APP_PEXELS_API_KEY}}
 
     steps:
     - uses: 'actions/checkout@v3'
