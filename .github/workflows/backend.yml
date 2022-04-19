@@ -1,8 +1,8 @@
-name: Docker Image CI
+name: Backend Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main ] 
   pull_request:
     branches: [ main ]
 
@@ -11,6 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     env:
           IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APP_NAME_BACKEND }}
+          aws_access_key_id: ${{ secrets.secrets.aws_access_key_id}}
+          aws_secret_access_key: ${{ secrets.aws_secret_access_key}}
+          mongodb_password: ${{ secrets.mongodb_password}}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID}}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN}}
+          TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER}}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY}}
+          REACT_APP_PEXELS_API_KEY: ${{ secrets.REACT_APP_PEXELS_API_KEY}}
+          
 
     steps:
     - uses: 'actions/checkout@v3'
@@ -20,20 +29,22 @@ jobs:
       with:
         credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
-    - name: Configure Docker
-      run: gcloud auth configure-docker --quiet
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v0'
+      
+    - name: 'Submit to cloud build'
+      run: |
+        cd backend
+        gcloud builds submit --tag $IMAGE_NAME
+    - name: 'Deploy to Cloud Run'
+      run: gcloud run deploy ${{ secrets.GCP_PROJECT }} --image $IMAGE_NAME --region us-central1 --platform managed --allow-unauthenticated
+            --set-env-vars=aws_access_key_id=$aws_access_key_id
+            --set-env-vars=aws_secret_access_key=$aws_secret_access_key
+            --set-env-vars=mongodb_password=$mongodb_password
+            --set-env-vars=TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID
+            --set-env-vars=TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN
+            --set-env-vars=TWILIO_PHONE_NUMBER=$TWILIO_PHONE_NUMBER
+            --set-env-vars=STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY
+            --set-env-vars=REACT_APP_PEXELS_API_KEY=$REACT_APP_PEXELS_API_KEY
 
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Build Docker image
-      run: docker build ./backend/Dockerfile -t $IMAGE_NAME
-
-    - name: Test Docker image
-      run: docker run $IMAGE_NAME sh -c "go test -v"
-
-    - name: Push Docker image
-      run: docker push $IMAGE_NAME
-
-    - name: Deploy Docker image
-      run: gcloud run deploy ${{ secrets.GCP_PROJECT }} --image $IMAGE_NAME --region us-central1 --platform managed
+            
