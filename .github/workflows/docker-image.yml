@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image 
-      run: docker build --file Dockerfile --tag mustang
+      run: docker build -t mustang .
       
     - name: Running Image
       run: docker run mustang
