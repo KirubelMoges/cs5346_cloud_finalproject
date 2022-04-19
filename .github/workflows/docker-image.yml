@@ -24,14 +24,6 @@ jobs:
         
         
     - name: Verification
-      uses: 'google-github-actions/auth@v0'
-
-    - name: 'Set up Cloud SDK'
-      uses: 'google-github-actions/setup-gcloud@v0'
-
-    - name: 'Use gcloud CLI'
-      run: 'gcloud info'
-      
     - uses: 'actions/checkout@v3'
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
