@@ -23,8 +23,8 @@ module.exports = function routes(app, logger) {
    const system_twilio_phoneNumber = process.env.TWILIO_PHONE_NUMBER; // Your Twilio Phone Number
 
 
-   const twilioClient = require('twilio')(twilio_accountSid, twilio_authToken);
-   const gcpNLPClient = new language.LanguageServiceClient();
+   const twilioClient = require('twilio')(twilio_accountSid, twilio_authToken); 
+   const gcpNLPClient = new language.LanguageServiceClient(); 
 
     const rekognition_collection_id = 'mustang-go-image-collection'
 
