@@ -1,7 +1,7 @@
 FROM node:17 AS ui-build
 WORKDIR /usr/src/app
 COPY frontend/ ./frontend/
-RUN cd frontend && npm install && npm run build
+RUN cd frontend && npm install && npm start
 
 FROM node:17 AS server-build
 WORKDIR /root/
