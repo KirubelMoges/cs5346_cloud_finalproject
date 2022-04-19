@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
           IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APP_NAME_BACKEND }}
+          aws_access_key_id: ${{secrets.aws_access_key_id}}
 
     steps:
     - uses: 'actions/checkout@v3'
