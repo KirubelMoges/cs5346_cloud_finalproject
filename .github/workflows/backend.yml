@@ -2,8 +2,9 @@ name: Backend Build
 
 on:
   push:
-    paths:
-    - 'backend/*'
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build-and-deploy:
