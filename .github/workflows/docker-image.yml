@@ -9,18 +9,6 @@ jobs:
     name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
     steps:
-      
-    - name: Getting Secrets
-      env: 
-        GCP_CREDENTIALS: '${{ secrets.GCP_CREDENTIALS }}'
-        GCP_PROJECT : '${{ secrets.GCP_PROJECT }}'
-        GCP_APPLICATION: '${{ secrets.GCP_APPLICATION }}'
-        GCP_EMAIL: '${{ secrets.EMAIL }}' 
-        GCP_TEST: 'Works?'
-      run: |
-        echo $GCP_TEST
-        
-        
     - name: Verification
     - uses: 'actions/checkout@v3'
     - id: 'auth'
