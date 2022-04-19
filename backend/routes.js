@@ -32,6 +32,8 @@ module.exports = function routes(app, logger) {
 
    const secretManager = new SecretManagerServiceClient();
 
+   console.log("Account ID Twilio: ", process.env.TWILIO_ACCOUNT_SID)
+
    // const googleNLPClient = new language.LanguageServiceClient({
    //    process.env.GOOGLE_CLIENT_ID,
    //    process.env.GOOGLE_CLIENt_SECRET

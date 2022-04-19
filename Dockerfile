@@ -7,9 +7,10 @@ FROM node:17 AS server-build
 WORKDIR /root/
 COPY --from=ui-build /usr/src/app/frontend/build ./frontend/build
 COPY backend/package*.json ./backend/
-RUN cd backend && npm install
+COPY backend/routes.js ./backend/
 COPY backend/index.js ./backend/
 
 EXPOSE 80
 
+RUN cd backend && npm install 
 CMD ["node", "./backend/index.js"]
