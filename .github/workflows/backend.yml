@@ -2,8 +2,6 @@ name: Backend Build
 
 on:
   push:
-    paths:
-    - 'backend/**'
 
 jobs:
   build-and-deploy:
