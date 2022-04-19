@@ -12,9 +12,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build the Backend Docker image 
-      run: docker build ./backend --file Dockerfile --tag backend:$(date +%s)
+    - name: Build the Docker image 
+      run: docker build -t mustang .
       
-    - uses: actions/checkout@v3
-    - name: Build the Frontend Docker image 
-      run: docker build ./frontend --file Dockerfile --tag frontend:$(date +%s)
+    - name: Running Image
+      run: docker run mustang
