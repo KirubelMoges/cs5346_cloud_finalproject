@@ -37,4 +37,14 @@ jobs:
         cd backend
         gcloud builds submit --tag $IMAGE_NAME
     - name: 'Deploy to Cloud Run'
-      run: gcloud run deploy ${{ secrets.GCP_PROJECT }} --image $IMAGE_NAME --region us-central1 --platform managed
+      run: gcloud run deploy ${{ secrets.GCP_PROJECT }} --image $IMAGE_NAME --region us-central1 --platform managed --allow-unauthenticated \
+            --set-env-vars=Eaws_access_key_id=$aws_access_key_id \
+            --set-env-vars=aws_secret_access_key=$aws_secret_access_key \
+            --set-env-vars=mongodb_password=$mongodb_password \
+            --set-env-vars=TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID \
+            --set-env-vars=TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN \
+            --set-env-vars=TWILIO_PHONE_NUMBER=$TWILIO_PHONE_NUMBER \
+            --set-env-vars=STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY \
+            --set-env-vars=REACT_APP_PEXELS_API_KEY=$REACT_APP_PEXELS_API_KEY \
+
+            
