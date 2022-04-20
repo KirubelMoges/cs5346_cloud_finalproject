@@ -50,6 +50,7 @@ const LogInModal = (props) => {
   }
 
   const onCaptureUserImage = async () => {
+    setIsLoading(true)
 
     try {
       let base64_image_string = String(userImage).replace('data:image/jpeg;base64,', '')
@@ -71,6 +72,7 @@ const LogInModal = (props) => {
       console.log("Error while detecting faces in AWS Rekognition in LoginModal")
 
     }
+    setIsLoading(false)
   }
 
   const onLogIn = async () => {
