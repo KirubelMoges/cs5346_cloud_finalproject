@@ -15,7 +15,7 @@ jobs:
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN}}
           TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER}}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY}}
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS_J }} 
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }} 
           REACT_APP_PEXELS_API_KEY: ${{ secrets.REACT_APP_PEXELS_API_KEY}}
           GCP_API_KEY: ${{ secrets.GCP_API_KEY }}
           
