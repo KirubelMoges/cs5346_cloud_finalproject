@@ -67,7 +67,7 @@ const ProductSearchVoiceModal = (props) => {
             const res_gcp = await gcpAPI.processSpeech(transcript)
             // console.log("res_aws: ", res_aws)
             // console.log("res_gcp: ", res_gcp)
-            let processedEntity = extractConsumerGoodPhrases(res_gcp['data'][0]['entities'])
+            let processedEntity = extractConsumerGoodPhrases(res_gcp['data']['entities'])
             let filteredEntity = processedEntity.filter(e => e != null);
             let processedPhraseArray = extractKeyPhrases(res_aws['data']['KeyPhrases'])
             // console.log("Processed Phrase Array: ", processedPhraseArray)

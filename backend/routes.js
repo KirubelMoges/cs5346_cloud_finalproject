@@ -8,6 +8,8 @@ const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
 const {OperationHelper} = require('apac');
 const axios = require('axios').default;
 require('dotenv').config();
+const {google} = require('googleapis');
+const { doubleclickbidmanager } = require('googleapis/build/src/apis/doubleclickbidmanager');
 
 
 module.exports = function routes(app, logger) {
@@ -24,7 +26,12 @@ module.exports = function routes(app, logger) {
 
 
    const twilioClient = require('twilio')(twilio_accountSid, twilio_authToken); 
-   const gcpNLPClient = new language.LanguageServiceClient(); 
+   // const gcpNLPClient = new language.LanguageServiceClient(); 
+
+   const gcpNLPClient = google.language({
+      version: 'v1',
+      auth: process.env.GCP_API_KEY
+    });
 
     const rekognition_collection_id = 'mustang-go-image-collection'
 
@@ -646,20 +653,37 @@ module.exports = function routes(app, logger) {
 
             let sentence = req.body["sentence"]
 
-            const document = {
-               content: sentence,
-               type: 'PLAIN_TEXT',
+             let data = JSON.stringify({
+               "document": {
+                  content: sentence,
+                  type: 'PLAIN_TEXT'
+               },
+               "encodingType": "UTF8"
+             });
+
+              let config = {
+               method: 'post',
+               url: `https://language.googleapis.com/v1/documents:analyzeEntities?key=${process.env.GCP_API_KEY}`,
+               headers: { 
+                 'Content-Type': 'application/json',
+                 'Access-Control-Allow-Origin': '*',
+               },
+               data : data
              };
 
             try {
 
-               const data = await gcpNLPClient.analyzeEntities({document});
+               axios(config)
+               .then((response) => {
 
-               res.status(200).json({
-                  status: 1,
-                  data
-                  });
-   
+                  const {data} = response
+                  res.status(200).json({
+                     status: 1, 
+                     data
+                     });
+
+               })
+
             } catch(err) {
                console.log("Sending bad request ", err)
                res.status(400).json({

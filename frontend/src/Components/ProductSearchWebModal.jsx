@@ -35,18 +35,19 @@ const ProductSearchWebModal = (props) => {
     try {
       let base64_image_string = String(productImage).replace('data:image/jpeg;base64,', '')
       const response = await awsAPI.detectLabels(base64_image_string)
-      // console.log("DetectLabels Response: ", response)
+      //console.log("DetectLabels Response: ", response)
 
       let labelsArray = response['data']['Labels']
-      // console.log("Labels Array: ", labelsArray)
+      //console.log("Labels Array: ", labelsArray)
       let nameLabelArray = labelsArray.map((x) => x['Name'])
 
 
-      // console.log("NameLabelArray: ", nameLabelArray)
+      //console.log("NameLabelArray: ", nameLabelArray)
 
       const res_gcp = await gcpAPI.processSpeech(nameLabelArray.join(', '))
-      let entities = res_gcp['data'][0]['entities']
-      // console.log("Entities: ", entities)
+      //console.log("res_gcp: ", res_gcp)
+      let entities = res_gcp['data']['entities']
+      //console.log("Entities: ", entities)
       
       let processedEntity = extractConsumerGoodPhrases(entities)
       let filteredEntity = processedEntity.filter(e => e != null);

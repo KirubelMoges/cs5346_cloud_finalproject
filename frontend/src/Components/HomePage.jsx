@@ -22,7 +22,7 @@ const HomePage = () => {
   return (
     <div>
         <NavBar />
-        <h3 style={{textAlign: 'center', marginTop: '10%'}}>Welcome to Mustang-Go Services Shopping!</h3>
+        <h3 style={{textAlign: 'center', marginTop: '10%'}}>Welcome to Mustang-Go Services Shopping! (U.S)</h3>
         <div style={{display: 'flex', justifyContent: 'center', marginTop: '10%'}}>
             <Button onClick={handleShowLoginModal}>Log In</Button>
             <Button style={{marginLeft: '5px'}} onClick={handleShowCreateAccountModal}>Create Account</Button>

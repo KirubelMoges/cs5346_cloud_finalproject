@@ -16,6 +16,7 @@ jobs:
           TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER}}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY}}
           REACT_APP_PEXELS_API_KEY: ${{ secrets.REACT_APP_PEXELS_API_KEY}}
+          GCP_API_KEY: ${{ secrets.GCP_API_KEY }}
           
 
     steps:
@@ -43,5 +44,6 @@ jobs:
             --set-env-vars=TWILIO_PHONE_NUMBER=$TWILIO_PHONE_NUMBER
             --set-env-vars=STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY
             --set-env-vars=REACT_APP_PEXELS_API_KEY=$REACT_APP_PEXELS_API_KEY
+            --set-env-vars=GCP_API_KEY=$GCP_API_KEY
 
             
