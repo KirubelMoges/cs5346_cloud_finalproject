@@ -7,7 +7,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
-          IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APP_NAME_BACKEND }}
+          IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_J }}/${{ secrets.GCP_APP_NAME_BACKEND }}
           aws_access_key_id: ${{ secrets.aws_access_key_id}}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key}}
           mongodb_password: ${{ secrets.mongodb_password}}
@@ -15,7 +15,7 @@ jobs:
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN}}
           TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER}}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY}}
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }} 
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS_J }} 
           REACT_APP_PEXELS_API_KEY: ${{ secrets.REACT_APP_PEXELS_API_KEY}}
           GCP_API_KEY: ${{ secrets.GCP_API_KEY }}
           
@@ -26,7 +26,7 @@ jobs:
       name: 'Authenticate to Google Cloud'
       uses: 'google-github-actions/auth@v0'
       with:
-        credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+        credentials_json: '${{ secrets.GCP_CREDENTIALS_J }}'
 
     - name: 'Set up Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v0'
