@@ -74,6 +74,7 @@ const CreateAccountModal = (props) => {
     }
 
     const onCaptureUserImage = async () => {
+        setIsLoading(true)
         setIsUserAlreadyExists(false)
         let base64_image_string = String(userImage).replace('data:image/jpeg;base64,', '')
         const res = await rekognition_api.detectFaces(base64_image_string);
@@ -89,6 +90,7 @@ const CreateAccountModal = (props) => {
             setIsOnlyOneFaceDetected(false)
             setIsNoFaceDetected(true)
         }
+        setIsLoading(false)
     }
 
     const resetImageState = () => {
