@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
-import { Button, Modal, Form, FormGroup, Spinner, Alert, Table, Card, CardGroup,  } from 'react-bootstrap';
+import { Button, Modal, Form } from 'react-bootstrap';
 import AWS_API from '../Api/AWS_API'
 import GCP_API from '../Api/GCP_API'
 import PexelsAPI from '../Api/PexelsAPI'

@@ -5,10 +5,6 @@ import { UserContext } from './utils/context';
 import HomePageController from "./Components/HomePageController";
 
 const App = () => {
-
-  //const userRepository = new UserRepository();
-  //const [context, setContext] = useState(userRepository.currentUser());
-
   const [context, setContext] = useState();
  
   return (

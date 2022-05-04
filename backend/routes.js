@@ -3,21 +3,15 @@ const AWS = require('aws-sdk');
 const { MongoClient, ObjectId } = require("mongodb");
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const amazonProduct = require('amazon-product-api');
-const language = require('@google-cloud/language');
-const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
-const {OperationHelper} = require('apac');
 const axios = require('axios').default;
 require('dotenv').config();
 const {google} = require('googleapis');
-const { doubleclickbidmanager } = require('googleapis/build/src/apis/doubleclickbidmanager');
 
 
 module.exports = function routes(app, logger) {
 
    const USER_COLLECTION_MONGODB = "users";
-   const PRODUCT_COLLECTION_MONGODB = "products";
    const PURCHASE_HISTORY_COLLECTION_MONGODB = "purchase-history";
-   const CART_COLLECTION_MONGODB = "cart"
    const MONGO_DATABASE_NAME = "mustangGoMongoDB";
 
    const twilio_accountSid = process.env.TWILIO_ACCOUNT_SID; // Your Account SID from www.twilio.com/console
@@ -26,12 +20,6 @@ module.exports = function routes(app, logger) {
 
 
    const twilioClient = require('twilio')(twilio_accountSid, twilio_authToken); 
-   // const gcpNLPClient = new language.LanguageServiceClient(); 
-
-   const gcpNLPClient = google.language({
-      version: 'v1',
-      auth: process.env.GCP_API_KEY
-    });
 
     const rekognition_collection_id = 'mustang-go-image-collection'
 
@@ -59,8 +47,6 @@ module.exports = function routes(app, logger) {
    */
     app.post('/searchuser', (req, res) => {
       let userImage = req.body['userImage'];
-
-      //console.log("From Routes, Search Image: ", userImage)
 
      const imageBuffer = Buffer.from(decodeURIComponent(userImage), 'base64');
 
@@ -452,74 +438,8 @@ module.exports = function routes(app, logger) {
             }
          
          });
-
-   /**
-   * 
-   * @param {productInfo} - templated content about product info
-   * @returns {0, 1} - 0: Failed to product info . 1: product info successfully stored in mongodb
-   */
-       app.post('/addProductInfo', async (req, res) => {
-
-         let productInfo = req.body['productInfo']
-
-         try {
-
-            await mongoClient.connect()
-
-            const data = await database.collection(PRODUCT_COLLECTION_MONGODB).insertOne(productInfo)
-
-            res.status(200).json({
-               status: 1,
-               data
-               });
-
-         } catch(err) {
-            res.status(400).json({
-               status: 0, 
-               err
-               });
-         } finally {
-
-            await mongoClient.close()
-         }
-         
-
-         });
-
-      /**
-   * 
-   * @param {userInfo} - templated content about a users purchase history
-   * @returns {0, 1} - 0: Failed to store info . 1: Purchase info successfully stored in mongodb
-   */
-       app.post('/addPurchaseInfo', async (req, res) => {
-
-         let purchaseInfo = req.body['purchaseInfo']
-
-         try {
-
-            await mongoClient.connect()
-
-            const data = await database.collection(PURCHASE_HISTORY_COLLECTION_MONGODB).insertOne(purchaseInfo)
-
-            res.status(200).json({
-               status: 1,
-               data
-               });
-
-         } catch(err) {
-            res.status(400).json({
-               status: 0, 
-               err
-               });
-         } finally {
-
-            await mongoClient.close()
-         }
-         
-         });
-
    
-         /**
+   /**
    * 
    * @param {messageContent} - message
    * @returns {0, 1} - 0: Failed . 1: Success
@@ -590,7 +510,7 @@ module.exports = function routes(app, logger) {
 
    /**
    * 
-   * @param {} - message
+   * @param {userPaymentInfo} - 
    * @returns {0, 1} - 0: Failed . 1: Success
    */
          app.post('/initialPaymentInfo', async (req, res) => {
