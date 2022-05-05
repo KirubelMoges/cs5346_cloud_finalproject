@@ -61,6 +61,7 @@ This project makes use of the following services:
 * GCP Cloud Build & Cloud Run - Containerized application build & deployment
 * Pexels API - Image retrieval based on extracted description
 * Google Places API - predicted address retrieval
+* MongoDB - User information storage
 
 There's a .env.test file located in both frontend & backend directory. Their corresponding secrets have been
 removed for security reasons, but you're welcome to create your own secret keys with the services listed in that file
